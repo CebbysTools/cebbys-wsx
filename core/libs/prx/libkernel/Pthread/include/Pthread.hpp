@@ -123,6 +123,7 @@ struct PthreadPrivate {
     std::atomic<int> pendingException{0};
     std::atomic<int> schedPolicy{1};
     void* wakeEvent = nullptr;
+    void* doneEvent = nullptr;
     void* stackAddress = nullptr;
     std::size_t stackSize = 0;
     std::atomic<int> waitCount{0};
