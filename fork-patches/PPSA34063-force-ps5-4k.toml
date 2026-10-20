@@ -1,0 +1,9 @@
+format = 1
+
+[[patch]]
+name        = "force_ps5_4k"
+target      = "eboot.elf"
+va          = 0x1285b56
+expected    = "410f94c7"
+value       = "41b70190"
+description = "platform detection: treat video output as 4K (PS5_4K instead of PS5_BASE)"
