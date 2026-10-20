@@ -1007,7 +1007,7 @@ public:
         static_cast<void>(readerOf(read));
         components.From(read.Id(), [this](std::uint32_t node, std::vector<std::uint32_t>& out) { expand(node, out); }, [this](const std::vector<std::uint32_t>& members, bool cyclic) { settle(members, cyclic); });
         solving = false;
-        return sets.Contains(unread[read.Id()], read.Argument(1)->Resolve()->Id());
+        return !halted && sets.Contains(unread[read.Id()], read.Argument(1)->Resolve()->Id());
     }
 
     [[nodiscard]] bool Follows(const IrValue& value) const {
@@ -1044,6 +1044,7 @@ public:
 
 private:
     static constexpr std::uint32_t Queued = 0xffffffffu;
+    static constexpr std::uint64_t StepBudget = std::uint64_t{1} << 26u;
 
     template<typename TValue>
     static TValue& slot(std::vector<TValue>& table, std::uint32_t id, TValue fill) {
@@ -1113,6 +1114,7 @@ private:
     }
 
     MaskSet evaluate(std::uint32_t node) {
+        if (steps > StepBudget) halted = true;
         MaskSet result = MaskSets::All;
         for (const IrUse& use : values[node]->OperandUses()) {
             if (result == MaskSets::None) break;
@@ -1132,7 +1134,7 @@ private:
         ++group;
         queue.assign(members.rbegin(), members.rend());
         for (const std::uint32_t member : members) groups[member] = Queued;
-        while (!queue.empty()) {
+        while (!queue.empty() && !halted) {
             const std::uint32_t member = queue.back();
             queue.pop_back();
             groups[member] = group;
