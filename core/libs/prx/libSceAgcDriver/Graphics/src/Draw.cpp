@@ -269,6 +269,21 @@ void recordCmaskClear(const Context& context, Recorder& recorder, const HostImpo
 
 bool materializeCmaskClear(const Context& context, const ColorTarget& color, const std::shared_ptr<StorageTexture>& resident) {
     if (color.cmaskAddress == 0) return false;
+    if (color.cmaskSlices > 1) {
+        bool stored = false;
+        for (std::uint32_t index = 0; index < color.cmaskSlices; ++index) {
+            ColorTarget part = color;
+            part.cmaskSlices = 1;
+            part.surfaceAddress += index * color.sliceStride;
+            part.address += index * color.sliceStride;
+            part.cmaskAddress += index * color.cmaskSliceStride;
+            part.arrayLastSlice = 0;
+            part.layers = 1;
+            stored = materializeCmaskClear(context, part, nullptr) || stored;
+        }
+        if (stored && resident != nullptr) resident->Refresh();
+        return false;
+    }
     if (context.detiler != nullptr) requireCmaskCodes(context.detiler->CmaskErrors());
     const CmaskLayout layout(color.extent.width, color.extent.height);
     const auto bytes = layout.Bytes();

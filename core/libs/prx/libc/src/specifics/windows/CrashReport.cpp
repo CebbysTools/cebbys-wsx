@@ -8,6 +8,7 @@
 #include "prx/libc/include/CrashText.hpp"
 #include <algorithm>
 #include <atomic>
+#include <cctype>
 #include <chrono>
 #include <csignal>
 #include <cstdint>
@@ -16,6 +17,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iterator>
+#include <string>
+#include <string_view>
 #include <utility>
 #include <mutex>
 #include "Sse4aEmulation.hpp"
@@ -203,6 +206,69 @@ std::size_t ReadCode(std::uint64_t address, std::uint8_t* buffer, std::size_t si
         buffer[count++] = *reinterpret_cast<const std::uint8_t*>(cursor);
     }
     return count;
+}
+
+bool ReadGuestWords(std::uint64_t address, void* buffer, std::size_t size) {
+    SIZE_T copied = 0;
+    return ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<const void*>(address), buffer, size, &copied) && copied == size;
+}
+
+bool CrashRegister(const CONTEXT* context, std::string_view name, std::uint64_t& value) {
+    const std::pair<std::string_view, std::uint64_t> registers[] = {{"rax", context->Rax}, {"rbx", context->Rbx}, {"rcx", context->Rcx}, {"rdx", context->Rdx}, {"rsi", context->Rsi}, {"rdi", context->Rdi}, {"rbp", context->Rbp}, {"rsp", context->Rsp}, {"r8", context->R8}, {"r9", context->R9}, {"r10", context->R10}, {"r11", context->R11}, {"r12", context->R12}, {"r13", context->R13}, {"r14", context->R14}, {"r15", context->R15}, {"rip", context->Rip}};
+    for (const auto& [registerName, registerValue] : registers) {
+        if (registerName != name) continue;
+        value = registerValue;
+        return true;
+    }
+    return false;
+}
+
+void ReportCrashDump(const CONTEXT* context) {
+    const char* value = std::getenv("APS5_CRASH_DUMP");
+    if (value == nullptr || *value == '\0') return;
+    std::string_view rest(value);
+    while (!rest.empty()) {
+        const auto comma = rest.find(',');
+        const std::string path(rest.substr(0, comma));
+        rest = comma == std::string_view::npos ? std::string_view{} : rest.substr(comma + 1);
+        const char* cursor = path.c_str();
+        const char* nameEnd = cursor;
+        while (std::isalnum(static_cast<unsigned char>(*nameEnd))) ++nameEnd;
+        std::uint64_t address = 0;
+        if (!CrashRegister(context, std::string_view(cursor, static_cast<std::size_t>(nameEnd - cursor)), address)) {
+            Report("  dump %s: unknown register\n", path.c_str());
+            continue;
+        }
+        cursor = nameEnd;
+        bool readable = true;
+        while (readable && (*cursor == '+' || *cursor == '-' || *cursor == '@')) {
+            if (*cursor == '@') {
+                ++cursor;
+                std::uint64_t loaded = 0;
+                readable = ReadGuestWords(address, &loaded, sizeof(loaded));
+                address = loaded;
+                continue;
+            }
+            char* end = nullptr;
+            address += static_cast<std::uint64_t>(std::strtoll(cursor, &end, 0));
+            cursor = end;
+        }
+        std::size_t length = 0x40;
+        if (*cursor == ':') length = std::min<std::size_t>(std::strtoull(cursor + 1, nullptr, 0), 0x1000);
+        if (!readable) {
+            Report("  dump %s: unreadable pointer\n", path.c_str());
+            continue;
+        }
+        Report("  dump %s @%016llx:\n", path.c_str(), static_cast<unsigned long long>(address));
+        for (std::size_t offset = 0; offset < length; offset += 0x20) {
+            std::uint64_t words[4]{};
+            if (!ReadGuestWords(address + offset, words, sizeof(words))) {
+                Report("    +0x%03zx unreadable\n", offset);
+                break;
+            }
+            Report("    +0x%03zx %016llx %016llx %016llx %016llx\n", offset, words[0], words[1], words[2], words[3]);
+        }
+    }
 }
 
 void TraceSse4a(std::uint64_t rip, const sse4a::Instruction& instruction, const sse4a::Field& field, unsigned long long count) {
@@ -462,6 +528,7 @@ LONG WINAPI ReportCrash(EXCEPTION_POINTERS* info) {
             }
         }
     }
+    ReportCrashDump(context);
     ReportCallTrace();
     std::fflush(stderr);
     ReportAllThreads();
@@ -480,6 +547,16 @@ void ReportCallTrace() {
         DescribeAddress(entries[index].returnAddress, line, sizeof(line));
         Report("    #%llu thread %llu %s %s from %s\n", static_cast<unsigned long long>(entries[index].sequence),
             static_cast<unsigned long long>(entries[index].thread), entries[index].library, entries[index].name, line);
+    }
+    static CallTraceEntry own[64];
+    const std::uint64_t thread = CallTraceCurrentThread_nid_no_patch();
+    const std::size_t owned = CopyThreadCallTrace_nid_no_patch(thread, own, std::size(own));
+    if (owned != 0) {
+        Report("  last traced calls of the crashing thread %llu:\n", static_cast<unsigned long long>(thread));
+        for (std::size_t index = 0; index < owned; ++index) {
+            DescribeAddress(own[index].returnAddress, line, sizeof(line));
+            Report("    #%llu %s %s from %s\n", static_cast<unsigned long long>(own[index].sequence), own[index].library, own[index].name, line);
+        }
     }
     static CallTraceCount counts[32];
     std::uint64_t total = 0;

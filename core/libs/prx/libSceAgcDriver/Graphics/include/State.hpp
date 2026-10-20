@@ -50,6 +50,9 @@ struct ColorTarget {
     std::uint64_t cmaskAddress = 0;
     std::size_t cmaskBytes = 0;
     bool cmaskFastClear = false;
+    std::uint32_t cmaskSlices = 1;
+    std::uint64_t cmaskSliceStride = 0;
+    std::uint64_t sliceStride = 0;
     std::uint64_t surfaceAddress = 0;
     VkExtent2D surfaceExtent{};
     std::uint32_t mipCount = 1;
