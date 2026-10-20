@@ -10,6 +10,7 @@ Upstream's conventions check rejects this file; never include it in a branch mea
 - `nhl27` is the integration branch: `main` plus every branch below with status `testing` or later, merged for game runs. Rebuild it after any patch branch changes:
   `git checkout nhl27 && git reset --hard main && git merge --no-edit <branches...>`
 - Game-side byte patches (relinker `--patches` TOML files) are tracked in the second table; their files live in `fork-patches/`.
+- Branches start from the upstream commit the fork is based on (currently `9a97ac784`), never from the fork's `main`, so their diff holds only the patch. Diagnostic branches (`diag/...`) are never merged into `nhl27` permanently or sent upstream.
 - Status values: `testing` (in `nhl27`), `ready` (conventions check and tests pass), `upstream-pr #N`, `merged`, `dropped` (say why).
 
 ## AnyPS5 patches
@@ -19,6 +20,7 @@ Upstream's conventions check rejects this file; never include it in a branch mea
 | `feat/call-trace-crashing-thread` | libc (crash report) | Windows crash report lists the traced calls of the crashing thread (from the 65536-call ring), not only the global last 64. `APS5_CRASH_DUMP` dumps memory reached from the faulting registers through pointer paths (`reg+off@-off:len`, `@` loads a pointer). | `APS5_CRASH_DUMP` | NHL 27: showed the crashing `Job` thread made no failing system call before the preset crash; dumps proved the PS5_BASE preset list is empty. | testing |
 | `feat/videoout-output-resolution` | libSceVideoOut | `ANYPS5_OUTPUT_RESOLUTION=2160p\|1080p` sets the resolution `sceVideoOutGetOutputStatus` reports, as the console's video output setting. Default unchanged (from registered buffers, so 1080p before any buffer). Debt entry added. | `ANYPS5_OUTPUT_RESOLUTION` | NHL 27 (PPSA34063) ships quality presets only for PS5_4K/TRINITY_4K; with `2160p` it passes the `eboot+0x79289c6` null read at boot. Same root cause as upstream discussion #4275 (`ANYPS5_OUTPUT_4K` on a contributor branch, not in main). | testing |
 | `feat/agc-cmask-array-slices` | libSceAgcDriver | Single-sample CMASK fast clears of one slice of a 2D target, and of every slice of a single-mip array view (e.g. cube maps), instead of throwing. Per-slice CMASK stride = one slice's CMASK block run (GFX10 layout, unmeasured; debt entry). Error now names the view. | none | NHL 27: passes `CMASK fast clears of a 3D or array color target` (slice 1 of 512x512, then slices 0-5 of 512x512). | testing |
+| `fix/shader-masked-select-step-budget` | shader recompiler | `MaskedSelectEliminator`'s unread-lane analysis gets a 2^26-step budget; past it the pass stops removing selects, and a stopped first-lane solver reports "not proven", so only proven selects are removed. Output is correct, less optimised. | none | NHL 27 with `APS5_LOOP_GUARD=1`: shader preparation hung for 30+ min in `UnreadLanes::evaluate/settle` (thread dump). | testing |
 
 ## Game patches (relinker `--patches`)
 
