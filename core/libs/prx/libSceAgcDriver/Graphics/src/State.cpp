@@ -1727,7 +1727,8 @@ ColorTarget DecodeColorBuffer(const Registers& cx, std::uint32_t slot, bool allo
         color.clearWords[word] = clear == cx.end() ? 0u : clear->second;
     }
     if (((info & 0x2000u) != 0 || (color.samples > 1 && (info & 0x4000u) != 0)) && (color.samples > 1 || viewMip == 0)) {
-        Require(color.samples > 1 || (!volume && slice == 0 && color.arrayLastSlice == 0), "CMASK fast clears of a 3D or array color target are unsupported");
+        const bool singleSlice = !volume && color.arrayLastSlice == 0 && lastSlice == slice && maxMip == 0;
+        Require(color.samples > 1 || singleSlice, "CMASK fast clears of a 3D, array or mipmapped sliced color target are unsupported");
         Require(((attrib3 >> 19u) & 0x1fu) == 0x18u && (attrib3 & 0x4000000u) != 0, "CMASK fast clears need pipe-aligned SW_64KB_Z_X metadata (CB_COLOR_ATTRIB3 FMASK_SW_MODE 24, CMASK_PIPE_ALIGNED)");
         if (color.samples == 1) {
             Require(color.elementBytes <= 8, "CMASK fast clears of texels over 64 bits are unsupported");
@@ -1754,9 +1755,9 @@ ColorTarget DecodeColorBuffer(const Registers& cx, std::uint32_t slot, bool allo
             }
             const auto cmaskMip0Offset = precedingBlocks * CmaskLayout::Alignment;
             const auto totalCmaskBytes = totalBlocks * CmaskLayout::Alignment;
-            color.cmaskAddress = cmask + cmaskMip0Offset;
+            color.cmaskAddress = cmask + cmaskMip0Offset + (color.samples == 1 ? slice * totalCmaskBytes : 0u);
             color.cmaskBytes = CmaskBytes(color.extent.width, color.extent.height);
-            if (color.samples == 1) GuestMemory::CheckRange(reinterpret_cast<const void*>(cmask), totalCmaskBytes, CmaskLayout::Alignment, true);
+            if (color.samples == 1) GuestMemory::CheckRange(reinterpret_cast<const void*>(color.cmaskAddress), totalCmaskBytes, CmaskLayout::Alignment, true);
         }
         color.cmaskFastClear = (info & 0x2000u) != 0;
     }
