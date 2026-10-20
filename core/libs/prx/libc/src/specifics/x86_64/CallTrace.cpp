@@ -225,6 +225,16 @@ void ReportCallTrace() {
         DescribeAddress(line, entries[index].returnAddress);
         line.Write();
     }
+    static CallTraceEntry own[64];
+    const std::size_t owned = CopyThreadCallTrace_nid_no_patch(CurrentThread(), own, std::size(own));
+    if (owned != 0) {
+        line.Text("  last traced calls of the reporting thread ").Decimal(CurrentThread()).Text(":").Write();
+        for (std::size_t index = 0; index < owned; ++index) {
+            line.Text("    #").Decimal(own[index].sequence).Text(" ").Text(own[index].library).Text(" ").Text(own[index].name).Text(" from ");
+            DescribeAddress(line, own[index].returnAddress);
+            line.Write();
+        }
+    }
     std::uint64_t total = 0;
     const std::size_t counted = CopyCallCounts_nid_no_patch(counts, std::size(counts), &total);
     if (counted == 0) return;
@@ -349,6 +359,29 @@ std::size_t CopyCallTrace_nid_no_patch(CallTraceEntry* entries, std::size_t capa
         entries[count++] = entry;
     }
     return count;
+}
+
+std::size_t CopyThreadCallTrace_nid_no_patch(std::uint64_t thread, CallTraceEntry* entries, std::size_t capacity) {
+    const RingSlot* ring = g_ring.load(std::memory_order_acquire);
+    if (entries == nullptr || capacity == 0 || ring == nullptr) return 0;
+    const std::uint64_t last = g_sequence.load(std::memory_order_acquire);
+    const std::uint64_t span = std::min<std::uint64_t>(last, RingCapacity);
+    std::size_t count = 0;
+    for (std::uint64_t sequence = last; sequence > last - span && count < capacity; --sequence) {
+        const RingSlot& slot = ring[sequence % RingCapacity];
+        if (slot.sequence.load(std::memory_order_acquire) != sequence) continue;
+        if (slot.thread.load(std::memory_order_relaxed) != thread) continue;
+        const auto* record = slot.record.load(std::memory_order_relaxed);
+        const CallTraceEntry entry{sequence, thread, slot.returnAddress.load(std::memory_order_relaxed), record->name.c_str(), record->library.c_str()};
+        if (slot.sequence.load(std::memory_order_acquire) != sequence) continue;
+        entries[count++] = entry;
+    }
+    std::reverse(entries, entries + count);
+    return count;
+}
+
+std::uint64_t CallTraceCurrentThread_nid_no_patch() {
+    return CurrentThread();
 }
 
 std::size_t CopyCallCounts_nid_no_patch(CallTraceCount* entries, std::size_t capacity, std::uint64_t* total) {
