@@ -1702,8 +1702,9 @@ ColorTarget DecodeColorBuffer(const Registers& cx, std::uint32_t slot, bool allo
     }
     Require(color.tileMode != ColorTileMode::D64KBX || (color.pipeBankXor & ~0xcf00u) == 0, "unsupported display color pipe/bank XOR column bits");
     color.arrayAddress = color.arrayLastSlice != 0 ? color.surfaceAddress : 0;
+    if (!volume) color.sliceStride = ComputeSurfaceSize(ComputeElementMipLayout(ColorTextureTileMode(color.tileMode), color.elementBytes, color.surfaceExtent.width, color.surfaceExtent.height, color.mipCount), 1);
     if (slice != 0 && !volume) {
-        color.surfaceAddress += slice * ComputeSurfaceSize(ComputeElementMipLayout(ColorTextureTileMode(color.tileMode), color.elementBytes, color.surfaceExtent.width, color.surfaceExtent.height, color.mipCount), 1);
+        color.surfaceAddress += slice * color.sliceStride;
         if (color.arrayLastSlice == 0 && ColorTileModeIsXor(color.tileMode)) {
             const auto* equation = FindTextureSwizzleEquation(static_cast<std::uint32_t>(color.tileMode), color.elementBytes);
             Require(equation != nullptr, "a sliced color target has no swizzle equation");
@@ -1727,8 +1728,8 @@ ColorTarget DecodeColorBuffer(const Registers& cx, std::uint32_t slot, bool allo
         color.clearWords[word] = clear == cx.end() ? 0u : clear->second;
     }
     if (((info & 0x2000u) != 0 || (color.samples > 1 && (info & 0x4000u) != 0)) && (color.samples > 1 || viewMip == 0)) {
-        const bool singleSlice = !volume && color.arrayLastSlice == 0 && lastSlice == slice && maxMip == 0;
-        Require(color.samples > 1 || singleSlice, "CMASK fast clears of a 3D, array or mipmapped sliced color target are unsupported (volume " + std::to_string(volume) + ", slices " + std::to_string(slice) + "-" + std::to_string(lastSlice) + ", array last slice " + std::to_string(color.arrayLastSlice) + ", mips " + std::to_string(maxMip + 1u) + ", " + std::to_string(color.extent.width) + "x" + std::to_string(color.extent.height) + ")");
+        const bool slices = !volume && maxMip == 0 && (color.arrayLastSlice != 0 || lastSlice == slice);
+        Require(color.samples > 1 || slices, "CMASK fast clears of a 3D, array or mipmapped sliced color target are unsupported (volume " + std::to_string(volume) + ", slices " + std::to_string(slice) + "-" + std::to_string(lastSlice) + ", array last slice " + std::to_string(color.arrayLastSlice) + ", mips " + std::to_string(maxMip + 1u) + ", " + std::to_string(color.extent.width) + "x" + std::to_string(color.extent.height) + ")");
         Require(((attrib3 >> 19u) & 0x1fu) == 0x18u && (attrib3 & 0x4000000u) != 0, "CMASK fast clears need pipe-aligned SW_64KB_Z_X metadata (CB_COLOR_ATTRIB3 FMASK_SW_MODE 24, CMASK_PIPE_ALIGNED)");
         if (color.samples == 1) {
             Require(color.elementBytes <= 8, "CMASK fast clears of texels over 64 bits are unsupported");
@@ -1757,7 +1758,11 @@ ColorTarget DecodeColorBuffer(const Registers& cx, std::uint32_t slot, bool allo
             const auto totalCmaskBytes = totalBlocks * CmaskLayout::Alignment;
             color.cmaskAddress = cmask + cmaskMip0Offset + (color.samples == 1 ? slice * totalCmaskBytes : 0u);
             color.cmaskBytes = CmaskBytes(color.extent.width, color.extent.height);
-            if (color.samples == 1) GuestMemory::CheckRange(reinterpret_cast<const void*>(color.cmaskAddress), totalCmaskBytes, CmaskLayout::Alignment, true);
+            if (color.samples == 1) {
+                color.cmaskSlices = lastSlice + 1u - slice;
+                color.cmaskSliceStride = totalCmaskBytes;
+            }
+            if (color.samples == 1) GuestMemory::CheckRange(reinterpret_cast<const void*>(color.cmaskAddress), totalCmaskBytes * color.cmaskSlices, CmaskLayout::Alignment, true);
         }
         color.cmaskFastClear = (info & 0x2000u) != 0;
     }
