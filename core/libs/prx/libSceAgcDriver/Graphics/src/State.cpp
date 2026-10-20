@@ -1728,7 +1728,7 @@ ColorTarget DecodeColorBuffer(const Registers& cx, std::uint32_t slot, bool allo
     }
     if (((info & 0x2000u) != 0 || (color.samples > 1 && (info & 0x4000u) != 0)) && (color.samples > 1 || viewMip == 0)) {
         const bool singleSlice = !volume && color.arrayLastSlice == 0 && lastSlice == slice && maxMip == 0;
-        Require(color.samples > 1 || singleSlice, "CMASK fast clears of a 3D, array or mipmapped sliced color target are unsupported");
+        Require(color.samples > 1 || singleSlice, "CMASK fast clears of a 3D, array or mipmapped sliced color target are unsupported (volume " + std::to_string(volume) + ", slices " + std::to_string(slice) + "-" + std::to_string(lastSlice) + ", array last slice " + std::to_string(color.arrayLastSlice) + ", mips " + std::to_string(maxMip + 1u) + ", " + std::to_string(color.extent.width) + "x" + std::to_string(color.extent.height) + ")");
         Require(((attrib3 >> 19u) & 0x1fu) == 0x18u && (attrib3 & 0x4000000u) != 0, "CMASK fast clears need pipe-aligned SW_64KB_Z_X metadata (CB_COLOR_ATTRIB3 FMASK_SW_MODE 24, CMASK_PIPE_ALIGNED)");
         if (color.samples == 1) {
             Require(color.elementBytes <= 8, "CMASK fast clears of texels over 64 bits are unsupported");
