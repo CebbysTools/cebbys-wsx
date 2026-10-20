@@ -4543,6 +4543,8 @@ std::shared_ptr<PreparedDispatch> VulkanDevice::PrepareDispatch(const ShaderReco
         phase(PreparedDispatch::PreparePresync);
     }
     if (profile) prepared->prepareMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    const auto beforeObjectsMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+    if (beforeObjectsMs > 20.0) std::fprintf(stderr, "[diag] prepare dispatch before pipeline %.1f ms program 0x%llx\n", beforeObjectsMs, static_cast<unsigned long long>(programAddress));
     const auto& built = cached != nullptr ? *cached : *prepared->resources;
     const std::array<Graphics::CompiledShader, 1> shaders{{compute}};
     const auto pushStages = Graphics::PushConstantStages(shaders);
@@ -4956,8 +4958,15 @@ std::shared_ptr<ComputePipelineObjects> VulkanDevice::computePipeline(const Grap
             if (const auto pending = state->computePipelinesBuilding.find(pipelineKey); pending != state->computePipelinesBuilding.end()) other = pending->second;
             else state->computePipelinesBuilding.emplace(pipelineKey, building.get_future().share());
         }
-        if (other.valid()) return other.get();
+        if (other.valid()) {
+            const auto waitStart = std::chrono::steady_clock::now();
+            auto shared = other.get();
+            const auto waitedMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - waitStart).count();
+            if (waitedMs > 20.0) std::fprintf(stderr, "[diag] compute pipeline wait on another builder %.1f ms program 0x%llx\n", waitedMs, static_cast<unsigned long long>(programAddress));
+            return shared;
+        }
     }
+    const auto buildStart = std::chrono::steady_clock::now();
     const auto finish = [&](std::shared_ptr<ComputePipelineObjects> built, std::exception_ptr error) {
         if (pipelineKey.identity.Empty()) return built;
         {
@@ -4977,6 +4986,8 @@ std::shared_ptr<ComputePipelineObjects> VulkanDevice::computePipeline(const Grap
         finish(nullptr, std::current_exception());
         throw;
     }
+    const auto builtMs = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - buildStart).count();
+    if (builtMs > 20.0) std::fprintf(stderr, "[diag] compute pipeline build %.1f ms program 0x%llx keyed %d spirv words %zu\n", builtMs, static_cast<unsigned long long>(programAddress), pipelineKey.identity.Empty() ? 0 : 1, shader.spirv.size());
     return finish(std::move(objects), nullptr);
 }
 
