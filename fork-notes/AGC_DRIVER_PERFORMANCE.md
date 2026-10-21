@@ -100,6 +100,21 @@ Ordered by expected gain. Each needs design work in the AGC driver (`core/libs/p
    - Split very long compute dispatches into chunks with submission points so no single submission exceeds the Windows TDR limit.
    - Or document `TdrDelay` (registry, administrator, reboot) as a user workaround.
 
+## Related upstream work (from the community blocker map)
+
+Source: [anyps5-roadmap, NHL 27](https://alxcbtw.github.io/anyps5-roadmap/#/games/nhl-27) and [Game bring-up #4275](https://github.com/boykopovar/AnyPS5/discussions/4275). Checked against this fork's base `9a97ac784` on 2026-10-21.
+
+| Upstream PR | State | Relation to this fork |
+|---|---|---|
+| [#4563](https://github.com/boykopovar/AnyPS5/pull/4563) keep a finished Windows thread's stack until it is joined or detached | open | Same crash as fork PR #4 (`fix/libkernel-windows-park-exited-thread-stacks`). It holds the host thread until `scePthreadJoin`/`scePthreadDetach`, which matches the console exactly, with a `guest_pthread_finished_stack` test. Prefer it upstream; fork PR #4 keeps up to 256 finished threads instead. |
+| [#4508](https://github.com/boykopovar/AnyPS5/pull/4508) honor the declared flexible memory budget | merged, in base | NHL 27 declares `kernel.flexibleMemorySize` 560 MiB; without it the title ran out ~20 minutes after the title screen ([#4617](https://github.com/boykopovar/AnyPS5/pull/4617), duplicate). |
+| [#3655](https://github.com/boykopovar/AnyPS5/pull/3655) one inlined BDA page-table walk per read | merged, in base | Needed to link NHL 27's 510k-word main-menu pixel shader on AMD ([#4976](https://github.com/boykopovar/AnyPS5/pull/4976), duplicate). |
+| [#4931](https://github.com/boykopovar/AnyPS5/pull/4931), [#4273](https://github.com/boykopovar/AnyPS5/pull/4273), [#4544](https://github.com/boykopovar/AnyPS5/pull/4544), [#4882](https://github.com/boykopovar/AnyPS5/pull/4882), [#4893](https://github.com/boykopovar/AnyPS5/pull/4893), [#5075](https://github.com/boykopovar/AnyPS5/pull/5075), [#1233](https://github.com/boykopovar/AnyPS5/pull/1233) | merged, in base | NHL 27 imports and relinker fixes. |
+
+Next known stop after the menus (match loading, from #4275): `AGC graphics: sampling the stencil plane of depth surface 0x… (2348x1320, vk format 130) as a 2348x1320 texture of guest format 1 (vk 9), tile mode 3` — AGC cannot yet sample the stencil plane of a depth surface as a texture.
+
+The NHL 27 bring-up fork [poonasor/AnyPS5 `dev-next`](https://github.com/poonasor/AnyPS5/tree/dev-next) (48 commits ahead, 608 behind upstream on 2026-10-21) carries experiments in the direction of requirements 1-3 above, mostly marked fork-only or behind `APS5_EXPERIMENT_*` switches: page probes and queued labels that no longer drain the draw pipeline, GPU-written vertex inputs bound in place without a CPU wait, pending counters copied into GDS on the GPU, cache-missed dispatches committed as draw-pipeline items, data-only draw hits, frame-rate experiments, and `require a 64-wide subgroup for compute programs recompiled for 64-wide subgroups`. Start there before designing these requirements from scratch; it needs a rebase onto current upstream.
+
 ## Tooling added in this fork for the work above
 
 | Branch | Tool |
