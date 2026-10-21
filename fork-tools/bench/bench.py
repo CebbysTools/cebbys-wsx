@@ -1,4 +1,5 @@
 import argparse
+import json
 import csv
 import re
 import statistics
@@ -7,17 +8,22 @@ import sys
 import time
 from pathlib import Path
 
+import scene
+
 ROOT = Path("/mnt/c/Games/NHL 27")
 ROOT_WIN = r"C:\Games\NHL 27"
 GAME_DIR = ROOT / "windows"
 GAME_DIR_WIN = ROOT_WIN + r"\windows"
 LOG_DIR = ROOT / "logs"
+SCENE_DIR = ROOT / "traces" / "scenes"
 PAD_TOOL = Path(__file__).resolve().parents[2] / "tools" / "pad_input.py"
 BASE_ENV = {
     "ANYPS5_OUTPUT_RESOLUTION": "2160p",
     "APS5_LOG_TIMESTAMPS": "1",
     "APS5_PROFILE_DRAW": "1",
     "APS5_PROFILE_GPU": "1",
+    "APS5_DUMP_FRAMES": "400",
+    "APS5_DUMP_FRAMES_EVERY": "10",
 }
 
 PRESENT = re.compile(r"^\[present\] (\d+) presents over 10 s")
@@ -29,9 +35,11 @@ CACHE = re.compile(r"totals: (\d+) hits, (\d+) misses")
 FATAL = re.compile(r"what\(\):\s*(.*)|^FATAL: (.*)")
 
 
-def run_game(log_name, seconds, env, press_after, press_every, press_count):
+def run_game(log_name, seconds, env, press_after, press_every, press_count, sequence=()):
     pad = GAME_DIR / "pad.txt"
     pad.write_text("")
+    for old in GAME_DIR.glob("frame_*.bmp"):
+        old.unlink()
     log = LOG_DIR / log_name
     if log.exists():
         log.unlink()
@@ -42,12 +50,15 @@ def run_game(log_name, seconds, env, press_after, press_every, press_count):
     milestones = {}
     next_press = press_after
     presses = 0
+    pending = sorted(sequence)
     seen = 0
     while process.poll() is None:
         elapsed = time.monotonic() - start
         if elapsed >= seconds:
             break
-        if press_every > 0 and elapsed >= next_press and (press_count == 0 or presses < press_count):
+        while pending and elapsed >= pending[0][0]:
+            subprocess.run([sys.executable, "-I", str(PAD_TOOL), "--hold-ms", "150", str(pad), pending.pop(0)[1]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if not sequence and press_every > 0 and elapsed >= next_press and (press_count == 0 or presses < press_count):
             subprocess.run([sys.executable, "-I", str(PAD_TOOL), "--hold-ms", "150", str(pad), "cross"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             next_press = elapsed + press_every
             presses += 1
@@ -132,6 +143,21 @@ def parse(log, skip_windows):
     return result
 
 
+def capture_scene(label):
+    frames = sorted(GAME_DIR.glob("frame_*.bmp"))
+    if not frames:
+        return {"scene": "no frames"}
+    SCENE_DIR.mkdir(parents=True, exist_ok=True)
+    last = frames[-1]
+    cells = scene.signature(last)
+    scene.write_png(last, SCENE_DIR / f"{label}.png")
+    (SCENE_DIR / f"{label}.json").write_text(json.dumps(cells))
+    for frame in frames:
+        frame.unlink()
+    name, gap = scene.identify(cells)
+    return {"scene": name, "scene_distance": gap}
+
+
 def main():
     parser = argparse.ArgumentParser(description="Measure the converted title with a fixed scene and report the milestone metrics")
     parser.add_argument("label")
@@ -143,16 +169,24 @@ def main():
     parser.add_argument("--env", action="append", default=[], help="NAME=VALUE added to the base environment")
     parser.add_argument("--out", default=str(Path(__file__).resolve().parent / "results"))
     parser.add_argument("--parse-only", help="existing log name in the logs folder; no run")
+    parser.add_argument("--sequence", default="", help="comma-separated SECONDS:BUTTON presses, e.g. 50:cross,65:cross,110:triangle; replaces the periodic presses")
+    parser.add_argument("--label-scene", help="store the last frame of run LABEL as reference scene NAME and exit")
     args = parser.parse_args()
     env = dict(BASE_ENV)
     for item in args.env:
         name, _, value = item.partition("=")
         env[name] = value
+    if args.label_scene:
+        cells = json.loads((SCENE_DIR / f"{args.label}.json").read_text())
+        scene.remember(args.label_scene, cells)
+        print(f"reference scene {args.label_scene} stored from run {args.label}")
+        return
     log_name = f"bench-{args.label}.log"
     if args.parse_only:
         log, milestones = LOG_DIR / args.parse_only, {}
     else:
-        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count)
+        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count, [(float(t), b) for t, b in (item.split(':') for item in args.sequence.split(',') if item)])
+        milestones.update(capture_scene(args.label))
     result = {"label": args.label, **milestones, **parse(log, args.skip_windows), "env": " ".join(f"{k}={v}" for k, v in env.items() if k not in BASE_ENV)}
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
