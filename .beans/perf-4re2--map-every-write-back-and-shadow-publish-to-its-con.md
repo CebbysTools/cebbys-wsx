@@ -37,3 +37,5 @@ Where frame time goes (baseline `bench-scenes-a`, 10 s window, 17 presents):
 Conclusion: the limiter is serialized CPU work plus CPU-GPU round trips, not PCIe bytes. Order: M4 (remove `recorded store` / `pending write` syncs on the frame path) and M3 (shorter GPU mutex holds in dispatch) before the M2 memory redesign.
 
 - `APS5_STORE_AT_FLIP=1` (menu): 1.11 FPS mean vs ~2.1 baseline, GPU busy 427 ms/frame; syncs not reduced. Rejected.
+
+- GDS drains: 1052 device drains per 120 s were all 4-byte memory->GDS `DMA_DATA`; `perf/agc-gds-copy-on-gpu` removes them, FPS unchanged (menu 0.78 vs 0.82 over 180 s). Patched run reached the pre-game tunnel within 180 s; baseline was still at the versus screen (single run).
