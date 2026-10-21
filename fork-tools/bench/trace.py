@@ -7,6 +7,9 @@ from pathlib import Path
 
 TOOLCHAIN = Path("/mnt/c/Users/valen/anyps5-toolchain")
 TRACE_DIR = Path("/mnt/c/Games/NHL 27/traces/ngfx-trace")
+PAD = Path("/mnt/c/Games/NHL 27/windows/pad.txt")
+PAD_TOOL = Path(__file__).resolve().parents[2] / "tools" / "pad_input.py"
+PRESS_TIMES = (50, 65, 80)
 FRAME_METRICS = {
     "FE_B.TriageSCG.gr__cycles_active.avg.pct_of_peak_sustained_elapsed": "graphics engine active %",
     "GPUTrace.sm__throughput.avg.pct_of_peak_sustained_elapsed": "SM throughput % of peak",
@@ -35,12 +38,17 @@ def main():
     if TRACE_DIR.exists():
         shutil.rmtree(TRACE_DIR)
     TRACE_DIR.mkdir(parents=True)
+    PAD.write_text("")
     subprocess.run(["cmd.exe", "/c", "schtasks /run /tn AnyPS5Trace"], cwd=TOOLCHAIN, check=True, stdout=subprocess.DEVNULL)
     start = time.monotonic()
+    pending = list(PRESS_TIMES)
     while time.monotonic() - start < args.timeout:
+        if pending and time.monotonic() - start >= pending[0]:
+            pending.pop(0)
+            subprocess.run(["python3", "-I", str(PAD_TOOL), "--hold-ms", "150", str(PAD), "cross"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if log.exists() and "ngfx exit" in log.read_text(errors="replace"):
             break
-        time.sleep(10)
+        time.sleep(1)
     subprocess.run(["cmd.exe", "/c", "taskkill /F /T /IM eboot.exe"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     base = TRACE_DIR / "BASE"
     if not (base / "FRAME.xls").exists():
