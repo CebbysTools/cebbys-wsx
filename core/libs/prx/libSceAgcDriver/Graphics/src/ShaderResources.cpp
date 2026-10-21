@@ -2477,7 +2477,10 @@ std::atomic<std::uint64_t> depthGuardRefusals{0};
 namespace {
 
 bool LoopGuardEnabled() {
-    static const bool enabled = std::getenv("APS5_LOOP_GUARD") != nullptr;
+    static const bool enabled = [] {
+        const char* value = std::getenv("APS5_LOOP_GUARD");
+        return value == nullptr || std::strtoul(value, nullptr, 0) != 0;
+    }();
     return enabled;
 }
 
