@@ -35,3 +35,5 @@ Where frame time goes (baseline `bench-scenes-a`, 10 s window, 17 presents):
 - `ShaderRecompiler::HashBytes` hot spot is the startup `RegistrationPreparePool` hashing the cache file, not per-frame.
 
 Conclusion: the limiter is serialized CPU work plus CPU-GPU round trips, not PCIe bytes. Order: M4 (remove `recorded store` / `pending write` syncs on the frame path) and M3 (shorter GPU mutex holds in dispatch) before the M2 memory redesign.
+
+- `APS5_STORE_AT_FLIP=1` (menu): 1.11 FPS mean vs ~2.1 baseline, GPU busy 427 ms/frame; syncs not reduced. Rejected.
