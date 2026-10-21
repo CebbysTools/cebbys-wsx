@@ -1573,6 +1573,15 @@ ImportRun windowRun(const HostImports& state, ImportRun run, std::uint64_t begin
             windowBegin = std::min(windowBegin, it->second.base);
             windowEnd = std::max(windowEnd, importEnd);
         }
+        std::uintptr_t residentBegin = 0;
+        std::uintptr_t residentEnd = 0;
+        if (GuestArena::GuestArenaResidentSpan_nid_postfix(static_cast<std::uintptr_t>(windowBegin), static_cast<std::size_t>(windowEnd - windowBegin), &residentBegin, &residentEnd)) {
+            const auto alignedBegin = std::max<std::uint64_t>(range.address, residentBegin / alignment * alignment);
+            const auto alignedEnd = std::min<std::uint64_t>(range.address + range.bytes, (residentEnd + alignment - 1) / alignment * alignment);
+            if (alignedBegin < windowBegin || alignedEnd > windowEnd) grown = true;
+            windowBegin = std::min<std::uint64_t>(windowBegin, alignedBegin);
+            windowEnd = std::max<std::uint64_t>(windowEnd, alignedEnd);
+        }
     }
     if (windowBegin % alignment != 0 || (windowEnd - windowBegin) % alignment != 0) return run;
     run.base = windowBegin;
