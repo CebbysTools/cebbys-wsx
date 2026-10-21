@@ -308,7 +308,7 @@ To measure how a title runs on a machine, start it with `APS5_TRACE_SUMMARY_EVER
 
 ### Tracing system library calls
 
-Windows and Linux. An executable converted with `--trace-imports` records the calls it makes to the libraries named in `APS5_TRACE_CALLS`, a comma-separated list such as `libkernel,libSceSaveData`, or `all`. Without the variable nothing is recorded. The crash and abort reports then end with the last 64 calls (on Linux, which has no crash report, only an abort prints them): sequence number, thread, library, import name as the executable imports it (a NID) and the caller's address. They are followed by the 32 most called imports since start-up, with their number of calls.
+Windows and Linux. An executable converted with `--trace-imports` records the calls it makes to the libraries named in `APS5_TRACE_CALLS`, a comma-separated list such as `libkernel,libSceSaveData`, or `all`. Without the variable nothing is recorded. The crash and abort reports then end with the last 64 calls (on Linux, which has no crash report, only an abort prints them): sequence number, thread, library, import name as the executable imports it (a NID) and the caller's address. The calls of the crashing thread itself follow, found in the last 65536 recorded calls, as up to 64 lines. They are followed by the 32 most called imports since start-up, with their number of calls.
 
 ```
 last traced system library calls (APS5_TRACE_CALLS):
