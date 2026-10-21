@@ -1,7 +1,7 @@
 ---
 # perf-ltj2
 title: 'Crash: read-write alias of shared guest memory extends outside the range'
-status: in-progress
+status: completed
 type: bug
 priority: high
 tags:
@@ -17,3 +17,5 @@ Acceptance: understood and fixed; no occurrence in a 2 h soak.
 
 ## Fix 2026-10-21
 Branch `fix/agc-import-alias-resident-run-outside`: the import checks `GuestArenaResidentSpan` and returns a failed import (CPU copy path) when a resident run crosses the window. Reproduced at ~30 s in menu once GDS copies ran on the GPU; 180 s run after the fix had no crash. Closes when: 2 h soak (perf-8637) without it.
+
+No alias crash in the 2 h soak.
