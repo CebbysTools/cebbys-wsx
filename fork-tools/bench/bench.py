@@ -29,7 +29,7 @@ CACHE = re.compile(r"totals: (\d+) hits, (\d+) misses")
 FATAL = re.compile(r"what\(\):\s*(.*)|^FATAL: (.*)")
 
 
-def run_game(log_name, seconds, env, press_after, press_every):
+def run_game(log_name, seconds, env, press_after, press_every, press_count):
     pad = GAME_DIR / "pad.txt"
     pad.write_text("")
     log = LOG_DIR / log_name
@@ -41,14 +41,16 @@ def run_game(log_name, seconds, env, press_after, press_every):
     start = time.monotonic()
     milestones = {}
     next_press = press_after
+    presses = 0
     seen = 0
     while process.poll() is None:
         elapsed = time.monotonic() - start
         if elapsed >= seconds:
             break
-        if press_every > 0 and elapsed >= next_press:
+        if press_every > 0 and elapsed >= next_press and (press_count == 0 or presses < press_count):
             subprocess.run([sys.executable, "-I", str(PAD_TOOL), "--hold-ms", "150", str(pad), "cross"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             next_press = elapsed + press_every
+            presses += 1
         if log.exists():
             with log.open("r", errors="replace") as handle:
                 handle.seek(seen)
@@ -137,6 +139,7 @@ def main():
     parser.add_argument("--skip-windows", type=int, default=12, help="10 s windows excluded from steady-state numbers (boot and loading)")
     parser.add_argument("--press-after", type=int, default=50)
     parser.add_argument("--press-every", type=int, default=15)
+    parser.add_argument("--press-count", type=int, default=0, help="stop pressing after this many presses (0: press for the whole run)")
     parser.add_argument("--env", action="append", default=[], help="NAME=VALUE added to the base environment")
     parser.add_argument("--out", default=str(Path(__file__).resolve().parent / "results"))
     parser.add_argument("--parse-only", help="existing log name in the logs folder; no run")
@@ -149,7 +152,7 @@ def main():
     if args.parse_only:
         log, milestones = LOG_DIR / args.parse_only, {}
     else:
-        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every)
+        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count)
     result = {"label": args.label, **milestones, **parse(log, args.skip_windows), "env": " ".join(f"{k}={v}" for k, v in env.items() if k not in BASE_ENV)}
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
