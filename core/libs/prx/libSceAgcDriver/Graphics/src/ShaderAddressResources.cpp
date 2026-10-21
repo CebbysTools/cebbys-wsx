@@ -115,7 +115,10 @@ bool SpirvStoresThroughAddresses(std::span<const std::uint32_t> words) {
 }
 
 void ShaderResources::prepareAddressBindings(std::span<const CompiledShader> shaders, std::span<const GuestMemorySnapshot> snapshots) {
-    static const bool loopGuarded = std::getenv("APS5_LOOP_GUARD") != nullptr;
+    static const bool loopGuarded = [] {
+        const char* value = std::getenv("APS5_LOOP_GUARD");
+        return value == nullptr || std::strtoul(value, nullptr, 0) != 0;
+    }();
     for (const auto& shader : shaders) {
         Require(shader.program != nullptr, "missing compiled shader");
         std::uint32_t tables = 0;
