@@ -1,4 +1,4 @@
-param([Parameter(Mandatory = $true)][string]$Dump)
+param([Parameter(Mandatory = $true)][string]$Dump, [switch]$Compress)
 $ErrorActionPreference = "Stop"
 $kit = $PSScriptRoot
 $Dump = (Resolve-Path $Dump).Path
@@ -38,4 +38,8 @@ if (-not (Test-Path "$windows\libs")) { New-Item -ItemType Junction -Path "$wind
 if (Test-Path "$windows\app0") { cmd /c rmdir "$windows\app0" }
 New-Item -ItemType Junction -Path "$windows\app0" -Target $Dump | Out-Null
 Copy-Item "$kit\Run NHL 27.cmd" $windows -Force
+if ($Compress) {
+    Write-Output "Compressing $Dump\Data with NTFS LZX (about 205 GB -> 30-45 GB; undo with: compact /u /s /exe)"
+    compact.exe /c /s /i /q /exe:lzx "$Dump\Data\*" | Out-Null
+}
 Write-Output "Done. Start the game with: $windows\Run NHL 27.cmd"
