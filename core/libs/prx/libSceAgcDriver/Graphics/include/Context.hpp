@@ -6,6 +6,7 @@
 #endif
 #include <mutex>
 #include <vulkan/vulkan.h>
+#include "prx/libSceAgcDriver/Graphics/include/DeviceMemoryTrace.hpp"
 #include <atomic>
 #include <cstdint>
 #include <cstdio>
@@ -271,7 +272,7 @@ struct Context {
     TFunction Function(const char* name) const {
         Require(deviceProc != nullptr, "missing Vulkan device function resolver");
         ++DeviceProcLookups();
-        const auto function = reinterpret_cast<TFunction>(deviceProc(device, name));
+        const auto function = reinterpret_cast<TFunction>(DeviceMemoryTrace::Wrap(name, deviceProc(device, name)));
         if (function == nullptr) throw std::runtime_error(std::string("AGC graphics: missing Vulkan function: ") + name);
         return function;
     }
