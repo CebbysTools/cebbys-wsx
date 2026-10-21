@@ -12,6 +12,9 @@ Setup (once):
   places the converted *.guest.prx files next to the originals in your dump, and makes
   windows\ with eboot.exe, a link to libs\ and a link (app0) to your dump.
 
+Optional, saves about 160 GB of disk: add -Compress to the setup command. It uses Windows' own
+NTFS LZX compression on Data\ (transparent to the game; undo with compact /u /s /exe in Data\).
+
 Play:
   windows\Run NHL 27.cmd
 
