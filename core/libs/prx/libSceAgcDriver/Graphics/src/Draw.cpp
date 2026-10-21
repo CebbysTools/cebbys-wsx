@@ -1492,6 +1492,10 @@ struct IndirectRecord {
 // GPU-side indirect draw from `argumentBuffer` or the CPU-read records with the driver's rules.
 void recordDrawCommands(const Context& context, VkCommandBuffer commands, const State& state, const Pm4::DrawParameters& draw, const DrawInputs& inputs, const IndirectRecord* indirect, VkBuffer argumentBuffer, VkDeviceSize argumentOffset, std::uint32_t firstIndex = 0) {
     if (context.recorder != nullptr) context.recorder->NoteSampledDraw(commands);
+    if (context.checkpointMarker != nullptr) {
+        static std::atomic<std::uint64_t> draws{0};
+        context.checkpointMarker(commands, reinterpret_cast<const void*>(static_cast<std::uintptr_t>(0xd000000000000000ull | draws.fetch_add(1, std::memory_order_relaxed))));
+    }
     const auto* args = indirect != nullptr ? indirect->args : nullptr;
     if (state.stages.mesh && args != nullptr) {
         context.Function<PFN_vkCmdDrawMeshTasksIndirectEXT>("vkCmdDrawMeshTasksIndirectEXT")(commands, argumentBuffer, argumentOffset, 1, sizeof(VkDrawMeshTasksIndirectCommandEXT));
