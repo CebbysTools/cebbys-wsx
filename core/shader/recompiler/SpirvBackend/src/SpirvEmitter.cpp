@@ -19,7 +19,7 @@ namespace ShaderRecompiler {
 
 namespace {
 
-constexpr std::uint32_t DefaultLoopGuardLimit = 1u << 24u;
+constexpr std::uint32_t DefaultLoopGuardLimit = 1u << 17u;
 
 std::string FailureText(const IrProgram& program) {
     char hash[24];
