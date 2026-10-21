@@ -1,13 +1,13 @@
 ---
 # perf-8v84
 title: Benchmark script with fixed scenes and metrics
-status: todo
+status: in-progress
 type: task
 priority: high
 tags:
     - nhl27-perf
 created_at: 2026-10-21T07:55:35Z
-updated_at: 2026-10-21T07:55:35Z
+updated_at: 2026-10-21T07:58:45Z
 parent: perf-xpmq
 ---
 

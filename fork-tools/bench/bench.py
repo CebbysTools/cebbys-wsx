@@ -93,11 +93,11 @@ def parse(log, skip_windows):
             continue
         match = DRAW.match(line)
         if match and len(presents) > skip_windows:
-            lock_wait.append(float(match.group(2)))
+            lock_wait.append((int(match.group(1)), float(match.group(2))))
             continue
         match = DISPATCH.match(line)
         if match and len(presents) > skip_windows:
-            device_call.append(float(match.group(2)))
+            device_call.append((int(match.group(1)), float(match.group(2))))
             continue
         match = CACHE.search(line)
         if match:
@@ -108,6 +108,7 @@ def parse(log, skip_windows):
     steady = presents[skip_windows:]
     fps = [count / 10.0 for count in steady]
     mean = lambda values: round(statistics.fmean(values), 2) if values else None
+    weighted = lambda pairs: round(sum(count * value for count, value in pairs) / sum(count for count, _ in pairs), 1) if pairs and sum(count for count, _ in pairs) else None
     result = {
         "windows": len(presents),
         "fps_mean": mean(fps),
@@ -115,8 +116,9 @@ def parse(log, skip_windows):
         "fps_max_window": max(fps) if fps else None,
         "gpu_busy_ms_per_frame": mean(busy),
         "gpu_idle_ms_per_frame": mean(idle),
-        "draw_lock_wait_us": mean(lock_wait),
-        "dispatch_device_call_us": mean(device_call),
+        "draw_lock_wait_us": weighted(lock_wait),
+        "draw_lock_wait_s_per_10s": round(sum(count * value for count, value in lock_wait) / 1e6 / len(lock_wait), 2) if lock_wait else None,
+        "dispatch_device_call_us": weighted(device_call),
         "cache_hits": cache[0] if cache else None,
         "cache_misses": cache[1] if cache else None,
         "failure": failure,
