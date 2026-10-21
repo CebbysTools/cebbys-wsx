@@ -45,11 +45,11 @@ inline void printLocked(State& state) {
     std::int64_t total = 0;
     for (const auto& entry : sorted) total += entry.second.live;
     std::fprintf(stderr, "[devmem] live %lld MiB in %zu allocations\n", static_cast<long long>(total >> 20), state.memories.size());
-    for (std::size_t i = 0; i < std::min<std::size_t>(sorted.size(), 12); ++i) std::fprintf(stderr, "[devmem]   site 0x%llx live %lld MiB, %llu allocations\n", static_cast<unsigned long long>(sorted[i].first), static_cast<long long>(sorted[i].second.live >> 20), static_cast<unsigned long long>(sorted[i].second.allocations));
+    for (std::size_t i = 0; i < std::min<std::size_t>(sorted.size(), 12); ++i) std::fprintf(stderr, "[devmem]   site 0x%llx type %u live %lld MiB, %llu allocations\n", static_cast<unsigned long long>(sorted[i].first >> 8u), static_cast<unsigned>(sorted[i].first & 0xffu), static_cast<long long>(sorted[i].second.live >> 20), static_cast<unsigned long long>(sorted[i].second.allocations));
 }
 
 [[gnu::noinline]] inline VkResult VKAPI_CALL Allocate(VkDevice device, const VkMemoryAllocateInfo* info, const VkAllocationCallbacks* callbacks, VkDeviceMemory* memory) {
-    const auto site = reinterpret_cast<std::uintptr_t>(__builtin_return_address(0));
+    const auto site = (reinterpret_cast<std::uintptr_t>(__builtin_return_address(0)) << 8u) | info->memoryTypeIndex;
     auto& state = Get();
     const auto result = state.allocate(device, info, callbacks, memory);
     if (result != VK_SUCCESS) return result;
