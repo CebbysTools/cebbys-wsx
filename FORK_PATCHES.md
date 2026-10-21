@@ -34,6 +34,8 @@ Upstream's conventions check rejects this file; never include it in a branch mea
 
 ## Running NHL 27 with the fork
 
+Plan to reach 144 Hz: milestone `perf-jvvo` in beans (`beans list --tag nhl27-perf`), research in [fork-notes/MILESTONE_144FPS_RESEARCH.md](fork-notes/MILESTONE_144FPS_RESEARCH.md).
+
 Why it runs at 1-2 FPS and what the driver needs: [fork-notes/AGC_DRIVER_PERFORMANCE.md](fork-notes/AGC_DRIVER_PERFORMANCE.md).
 
 Environment: `ANYPS5_OUTPUT_RESOLUTION=2160p` (required). Do not leave diagnostic `APS5_*` switches set: the shader cache key includes them, so each new combination recompiles every shader (~26,000, ~40 GB).

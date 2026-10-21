@@ -124,7 +124,7 @@ The NHL 27 bring-up fork [poonasor/AnyPS5 `dev-next`](https://github.com/poonaso
 | `feat/call-trace-crashing-thread` | crash report: calls of the crashing thread; `APS5_CRASH_DUMP` pointer-path memory dumps |
 | `feat/shader-fast-float` | `APS5_FAST_FLOAT` prototype of relaxed float semantics |
 
-Nsight Graphics 2026.3.1 is installed. `C:\Users\valen\anyps5-toolchain\trace.cmd` runs a 2-frame GPU Trace (Ada, Top-Level Triage, real-time shader profiler, auto export to `ngfx-trace\`). Do not pass `--platform` to `ngfx.exe`: Qt takes it as its own platform-plugin option. GPU counters need administrator rights or the NVIDIA Control Panel setting "Allow access to the GPU performance counters to all users" (takes effect after a restart). The scheduled task `AnyPS5Trace` runs `trace.cmd` elevated without a prompt.
+Nsight Graphics 2026.3.1 is installed. `C:\Users\valen\anyps5-toolchain\trace.cmd` runs a 2-frame GPU Trace (Ada, Top-Level Triage, real-time shader profiler, auto export to `C:\Games\NHL 27\traces\ngfx-trace\`). Do not pass `--platform` to `ngfx.exe`: Qt takes it as its own platform-plugin option. GPU counters need administrator rights or the NVIDIA Control Panel setting "Allow access to the GPU performance counters to all users" (takes effect after a restart). The scheduled task `AnyPS5Trace` runs `trace.cmd` elevated without a prompt.
 
 ## Measurement rules
 
