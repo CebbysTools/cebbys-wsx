@@ -35,7 +35,7 @@ CACHE = re.compile(r"totals: (\d+) hits, (\d+) misses")
 FATAL = re.compile(r"what\(\):\s*(.*)|^FATAL: (.*)")
 
 
-def run_game(log_name, seconds, env, press_after, press_every, press_count, sequence=()):
+def run_game(log_name, seconds, env, press_after, press_every, press_count, sequence=(), then_every=0):
     pad = GAME_DIR / "pad.txt"
     pad.write_text("")
     for old in GAME_DIR.glob("frame_*.bmp"):
@@ -62,6 +62,9 @@ def run_game(log_name, seconds, env, press_after, press_every, press_count, sequ
             subprocess.run([sys.executable, "-I", str(PAD_TOOL), "--hold-ms", "150", str(pad), "cross"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             next_press = elapsed + press_every
             presses += 1
+        if sequence and not pending and then_every > 0 and elapsed >= next_press:
+            subprocess.run([sys.executable, "-I", str(PAD_TOOL), "--hold-ms", "150", str(pad), "cross"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            next_press = elapsed + then_every
         if log.exists():
             with log.open("r", errors="replace") as handle:
                 handle.seek(seen)
@@ -170,6 +173,7 @@ def main():
     parser.add_argument("--out", default=str(Path(__file__).resolve().parent / "results"))
     parser.add_argument("--parse-only", help="existing log name in the logs folder; no run")
     parser.add_argument("--sequence", default="", help="comma-separated SECONDS:BUTTON presses, e.g. 50:cross,65:cross,110:triangle; replaces the periodic presses")
+    parser.add_argument("--then-every", type=int, default=0, help="after the sequence, press cross every SECONDS (passes intermission screens in long runs)")
     parser.add_argument("--label-scene", help="store the last frame of run LABEL as reference scene NAME and exit")
     args = parser.parse_args()
     env = dict(BASE_ENV)
@@ -185,7 +189,7 @@ def main():
     if args.parse_only:
         log, milestones = LOG_DIR / args.parse_only, {}
     else:
-        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count, [(float(t), b) for t, b in (item.split(':') for item in args.sequence.split(',') if item)])
+        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count, [(float(t), b) for t, b in (item.split(':') for item in args.sequence.split(',') if item)], args.then_every)
         milestones.update(capture_scene(args.label))
     result = {"label": args.label, **milestones, **parse(log, args.skip_windows), "env": " ".join(f"{k}={v}" for k, v in env.items() if k not in BASE_ENV)}
     out = Path(args.out)
