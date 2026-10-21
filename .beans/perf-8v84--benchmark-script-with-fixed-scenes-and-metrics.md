@@ -7,8 +7,10 @@ priority: high
 tags:
     - nhl27-perf
 created_at: 2026-10-21T07:55:35Z
-updated_at: 2026-10-21T07:58:45Z
+updated_at: 2026-10-21T08:37:08Z
 parent: perf-xpmq
+blocked_by:
+    - perf-plco
 ---
 
 Script (WSL side, extends run_game.sh) that launches the converted title with a warm cache, drives scripted input to fixed scenes (boot, menu idle 60 s, menu navigation, match load), and extracts: presents per 10 s and 1% low, GPU busy/idle per frame, [gputime] by class (PCIe MiB/frame), [draw]/[dispatch] lock wait and device call, time to first frame and to first menu.
