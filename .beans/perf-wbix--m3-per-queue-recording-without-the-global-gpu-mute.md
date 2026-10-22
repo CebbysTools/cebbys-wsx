@@ -35,3 +35,10 @@ Section 4.2: one recorder per guest queue/host thread, preparation outside locks
 - Ruled out for that program: buffer placement (written regions staged to VRAM: no change; read-only regions staged: no change), SPIR-V optimisation (SPIRV-Tools ON: optimiser far too slow for 26k shaders and the run hung; not measured), `APS5_FAST_FLOAT` (27 ms both, no-cache runs), loop guard 4096 (inconclusive).
 - Frostbite DRS strings exist (`DynamicResolutionScale*`) but command-line `-Render.ResolutionScale`/`-WorldRender.ResolutionScale` had no effect; passes stay 4K (PS5_4K preset forced by `ANYPS5_OUTPUT_RESOLUTION=2160p`).
 - Next: shader-level profile of 0x1152fa6000 (Nsight real-time shader profiler on the menu frame), and a way to render below 4K.
+
+## Findings 2026-10-22 afternoon (team-versus menu, 2-minute runs, timeline traces)
+- Driver timeline (`APS5_TRACE_SECONDS`): queue worker 0x0 is busy 87-95% of the frame (critical path); GPU executes only a small part of the frame.
+- Ceiling stays ~4.6 FPS in this scene with each single change: HTILE read skip, `APS5_PIPELINE_DISPATCH=1` (draw-pipeline drains 3.9 s -> 0.5 s per 10 s), label flush 100 us, skipping the 340 ms async program `0x1x5258a000` (147x83 groups, 360 straight-line instructions, constant ~340 ms, not loop-guard bound), DCC key-writer sync skip, kept-bytes budget 1.5 GiB.
+- Remaining critical-path waits (~120 ms/frame): CPU syncs on GPU-written guest memory: `StorageTexture::FlushPending` (pending-write), `currentDccKeys` (recorded-store), `FlushForAccess`, `BoundKeptBytes`/WaitSerial.
+- Structural cause: the driver keeps PS5 guest memory as the source of truth and reads GPU results back on the CPU (DCC keys, storage results, HTILE) to decide how to build the next resource; every read is a GPU round trip under the queue-0 path. Fix direction: keep GPU-produced surfaces and their metadata GPU-resident and decide on the GPU (or from recorded state) instead of reading guest memory on the CPU.
+- C: drive ran full from experiment shader caches (5 x ~45 GB); stale caches deleted. Each translator/CMake change creates a new ~45 GB cache.
