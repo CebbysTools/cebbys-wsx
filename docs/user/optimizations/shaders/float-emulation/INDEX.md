@@ -4,11 +4,11 @@ Status: `testing`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [Fast float](fast-float/INDEX.md) | `no-gain` | 0x1152fa6000 ms per dispatch | 20.91 | 27.33 | no gain (no-cache run) |
-| [Float contraction](float-contraction/INDEX.md) | `no-gain` | Menu FPS (skipall → contract2) | 4.94 | 5.15 | +4%, inside spread |
-| [Native FP16 FMA](native-f16-fma/INDEX.md) | `testing` | 0x1152fa6000 ms per dispatch | 20.68 | 9.76 | -53% |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [Fast float](fast-float/INDEX.md) | `no-gain` | 0x1152fa6000 GPU ms per dispatch | 20.91 (htileskip) | 27.33 (fastfloat) | -23 | run without shader cache |
+| [Float contraction](float-contraction/INDEX.md) | `no-gain` | Menu FPS | 4.94 (skipall) | 5.15 (contract2) | 4 | inside run-to-run spread |
+| [Native FP16 FMA](native-f16-fma/INDEX.md) | `testing` | 0x1152fa6000 GPU ms per dispatch | 20.68 (stage1g) | 9.76 (f16fma-5) | 112 |  |
 
 ## Cause
 

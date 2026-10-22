@@ -4,15 +4,15 @@ Status: `testing`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [GDS copy on GPU](gds-copy-on-gpu/INDEX.md) | `no-gain` | Device drains per 10 s | 1050 | 0 | -100%; FPS unchanged |
-| [Host import window](host-import-window/INDEX.md): 256 MiB import window | `applied` | Menu FPS (win8 → win256) | 2.02 | 4.04 | +100% |
-| [Host import window](host-import-window/INDEX.md): 64 MiB import window | `rejected` | Menu FPS (win8 → win64) | 2.02 | 3.48 | +72% |
-| [Host import window](host-import-window/INDEX.md): 8 MiB import window | `rejected` | Menu FPS (win8) | 2.02 | 2.02 | baseline |
-| [Skip store re-uploads](skip-store-reuploads/INDEX.md) | `rejected` | Menu FPS (win256 → devnext-skipstore) | 4.04 | 1.54-2.80 | worse, glyphs lost |
-| [Storage cache priority](storage-cache-priority/INDEX.md) | `applied` | Menu FPS | not measured | not measured | report not kept |
-| [VRAM staging](vram-staging/INDEX.md) | `no-gain` | Menu FPS (htileskip → stagereads) | 4.24 | 3.36 | -21% |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [GDS copy on GPU](gds-copy-on-gpu/INDEX.md) | `no-gain` | Menu FPS | 0.82 (base-180) | not measured | not measured | device drains per 10 s: 1050 to 0 |
+| [Host import window](host-import-window/INDEX.md): 256 MiB import window | `applied` | Menu FPS | 2.02 (win8) | 4.04 (win256) | 100 |  |
+| [Host import window](host-import-window/INDEX.md): 64 MiB import window | `rejected` | Menu FPS | 2.02 (win8) | 3.48 (win64) | 72 |  |
+| [Host import window](host-import-window/INDEX.md): 8 MiB import window | `rejected` | Menu FPS | 2.02 (win8) | 2.02 (win8) | 0 | baseline |
+| [Skip store re-uploads](skip-store-reuploads/INDEX.md) | `rejected` | Menu FPS | 4.04 (win256) | 1.54-2.80 (devnext-skipstore) | -62 to -31 | worse, text glyphs lost |
+| [Storage cache priority](storage-cache-priority/INDEX.md) | `applied` | Menu FPS | not measured | not measured | not measured | report not kept |
+| [VRAM staging](vram-staging/INDEX.md) | `no-gain` | Menu FPS | 4.24 (htileskip) | 3.36 (stagereads) | -21 | worse |
 
 ## Cause
 

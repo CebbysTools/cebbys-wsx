@@ -4,9 +4,9 @@ Status: `researched`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Graphics wait behind 0x115258a000 | about 340 ms per run | not implemented | n/a |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Graphics wait behind 0x115258a000 | about 340 ms per run | not implemented | not measured |  |
 
 ## Cause
 

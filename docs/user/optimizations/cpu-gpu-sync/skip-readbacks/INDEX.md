@@ -4,9 +4,9 @@ Status: `testing`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (win256 → skipall) | 4.04 | 4.94 | +22% (diagnostic) |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 4.04 (win256) | 4.94 (skipall) | 22 | diagnostic switches only |
 
 ## Cause
 
@@ -47,7 +47,7 @@ About 250 syncs per 10 s, each 2-6 ms.
 
 ### Improvement
 
-Each skip added a little. All together: 4.04 to 4.94 FPS (+22%).
+Each skip added a little. All together: 4.04 to 4.94 FPS (improvement 22%).
 
 ### Timings
 

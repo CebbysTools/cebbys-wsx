@@ -4,9 +4,9 @@ Status: `applied`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS | not measured | not measured | report not kept |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | not measured | not measured | not measured | report not kept |
 
 ## Cause
 

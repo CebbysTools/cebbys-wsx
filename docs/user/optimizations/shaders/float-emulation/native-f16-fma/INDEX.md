@@ -4,9 +4,9 @@ Status: `testing`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x1152fa6000 ms per dispatch | 20.68 | 9.76 | -53% |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x1152fa6000 GPU ms per dispatch | 20.68 (stage1g) | 9.76 (f16fma-5) | 112 |  |
 
 ## Cause
 
@@ -53,7 +53,7 @@ The two heaviest menu programs are 53% f16 instructions. FMA was the largest emu
 
 ### Improvement
 
-0x1152fa6000 2.1x faster. 0x1150e42000 and 0x1161544500 about 13-17% faster in the f16fma-5 scene. Tests: 9 pass, 0 `VUID-` errors.
+Improvement: 0x1152fa6000 112%, 0x1150e42000 16%, 0x1161544500 21% (f16fma-5 scene; 0x1161544500 has no f16 change, so its value shows the scene difference). Tests: 9 pass, 0 `VUID-` errors.
 
 ### Timings
 

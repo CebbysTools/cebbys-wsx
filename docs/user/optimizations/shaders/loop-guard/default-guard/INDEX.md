@@ -4,9 +4,9 @@ Status: `applied`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| GPU resets in a match | yes (nvlddmkm 153) | none | fixed |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| GPU resets in a match | yes (nvlddmkm 153) | none | not a timing | stability fix |
 
 ## Cause
 

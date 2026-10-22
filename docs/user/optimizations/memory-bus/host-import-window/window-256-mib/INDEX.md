@@ -4,9 +4,9 @@ Status: `applied`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (win8 → win256) | 2.02 | 4.04 | +100% |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 2.02 (win8) | 4.04 (win256) | 100 |  |
 
 ## Cause
 
@@ -40,7 +40,7 @@ All measured render targets fit in 256 MiB. The CPU copies stop.
 
 ### Improvement
 
-Menu FPS doubled (2.02 to 4.04). GPU busy time per frame fell by 22%.
+Menu FPS 2.02 to 4.04 (improvement 100%). GPU busy time per frame 242.48 to 189.24 ms (improvement 28%).
 
 ### Timings
 

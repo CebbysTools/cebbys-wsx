@@ -4,9 +4,9 @@ Status: `no-gain`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Device drains per 10 s | 1050 | 0 | -100%; FPS unchanged |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 0.82 (base-180) | not measured | not measured | device drains per 10 s: 1050 to 0 |
 
 ## Cause
 

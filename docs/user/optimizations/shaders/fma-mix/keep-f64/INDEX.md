@@ -4,9 +4,9 @@ Status: `rejected`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x115258a000 ms per run | 339.48 | 338.52 | baseline |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x115258a000 GPU ms per run | 339.48 (stage1g) | 338.52 (f16fma-5) | 0 | baseline |
 
 ## Cause
 
