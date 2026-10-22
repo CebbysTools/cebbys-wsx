@@ -9,7 +9,7 @@ TOOLCHAIN = Path("/mnt/c/Users/valen/anyps5-toolchain")
 TRACE_DIR = Path("/mnt/c/Games/NHL 27/traces/ngfx-trace")
 PAD = Path("/mnt/c/Games/NHL 27/windows/pad.txt")
 PAD_TOOL = Path(__file__).resolve().parents[2] / "tools" / "pad_input.py"
-PRESS_TIMES = (50, 65, 80)
+PRESS_TIMES = tuple(range(150, 256, 15))
 FRAME_METRICS = {
     "FE_B.TriageSCG.gr__cycles_active.avg.pct_of_peak_sustained_elapsed": "graphics engine active %",
     "GPUTrace.sm__throughput.avg.pct_of_peak_sustained_elapsed": "SM throughput % of peak",

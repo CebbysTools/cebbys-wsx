@@ -35,7 +35,7 @@ CACHE = re.compile(r"totals: (\d+) hits, (\d+) misses")
 FATAL = re.compile(r"what\(\):\s*(.*)|^FATAL: (.*)")
 
 
-def run_game(log_name, seconds, env, press_after, press_every, press_count, sequence=(), then_every=0):
+def run_game(log_name, seconds, env, press_after, press_every, press_count, sequence=(), then_every=0, game_args=""):
     pad = GAME_DIR / "pad.txt"
     pad.write_text("")
     for old in GAME_DIR.glob("frame_*.bmp"):
@@ -45,13 +45,14 @@ def run_game(log_name, seconds, env, press_after, press_every, press_count, sequ
         log.unlink()
     sets = "".join(f"set {k}={v}&& " for k, v in env.items())
     sets += f"set APS5_PAD_INPUT_FILE={GAME_DIR_WIN}\\pad.txt&& "
-    process = subprocess.Popen(["cmd.exe", "/c", f"{sets}eboot.exe > ..\\logs\\{log_name} 2>&1"], cwd=GAME_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    process = subprocess.Popen(["cmd.exe", "/c", f"{sets}eboot.exe {game_args} > ..\\logs\\{log_name} 2>&1"], cwd=GAME_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     start = time.monotonic()
     milestones = {}
     next_press = press_after
     presses = 0
     pending = sorted(sequence)
     seen = 0
+    next_memory = 30
     while process.poll() is None:
         elapsed = time.monotonic() - start
         if elapsed >= seconds:
@@ -79,6 +80,11 @@ def run_game(log_name, seconds, env, press_after, press_every, press_count, sequ
                     milestones["first_present_s"] = round(elapsed, 1)
                 if count >= 10 and "first_interactive_s" not in milestones:
                     milestones["first_interactive_s"] = round(elapsed, 1)
+        if elapsed >= next_memory:
+            next_memory = elapsed + 30
+            sample = subprocess.run(["powershell.exe", "-NoProfile", "-Command", "(Get-Process eboot -ErrorAction SilentlyContinue | Measure-Object PrivateMemorySize64 -Sum).Sum"], capture_output=True, text=True).stdout.strip()
+            if sample.isdigit():
+                milestones["private_gb_peak"] = max(milestones.get("private_gb_peak", 0), round(int(sample) / 2**30, 1))
         time.sleep(1.0)
     subprocess.run(["cmd.exe", "/c", "taskkill /F /T /IM eboot.exe"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     process.wait()
@@ -86,13 +92,34 @@ def run_game(log_name, seconds, env, press_after, press_every, press_count, sequ
     return log, milestones
 
 
+LOCK_HELD = re.compile(r"^\[lock\] .*? held (\d+) ms in total")
+TEXTURE = re.compile(r"^\[texture\] (\d+) storage images .*?create (\d+) ms")
+STORAGE = re.compile(r"^\[storage\] uploads by path .*?cache eviction (\d+)/")
+
+
 def parse(log, skip_windows):
     presents, busy, idle, lock_wait, device_call, classes = [], [], [], [], [], {}
+    held, window_held, textures, evictions = [], 0, [], []
     cache = None
     failure = None
     for line in log.read_text(errors="replace").splitlines():
+        match = LOCK_HELD.match(line)
+        if match:
+            window_held += int(match.group(1))
+            continue
+        match = TEXTURE.match(line)
+        if match and len(presents) > skip_windows:
+            textures.append((len(presents), int(match.group(1)), int(match.group(2))))
+            continue
+        match = STORAGE.match(line)
+        if match and len(presents) > skip_windows:
+            evictions.append(int(match.group(1)))
+            continue
         match = PRESENT.match(line)
         if match:
+            if len(presents) > skip_windows:
+                held.append(window_held)
+            window_held = 0
             presents.append(int(match.group(1)))
             timing = BUSY.search(line)
             if timing and len(presents) > skip_windows:
@@ -137,6 +164,10 @@ def parse(log, skip_windows):
         "dispatch_device_call_us": weighted(device_call),
         "cache_hits": cache[0] if cache else None,
         "cache_misses": cache[1] if cache else None,
+        "lock_held_ms_per_10s": mean(held),
+        "storage_created_per_10s": round((textures[-1][1] - textures[0][1]) / (textures[-1][0] - textures[0][0]), 1) if len(textures) > 1 and textures[-1][0] > textures[0][0] else None,
+        "storage_create_ms_per_10s": round((textures[-1][2] - textures[0][2]) / max(1, textures[-1][0] - textures[0][0]), 1) if len(textures) > 1 and textures[-1][0] > textures[0][0] else None,
+        "eviction_writebacks_per_10s": mean(evictions),
         "failure": failure,
     }
     for name, (ms, mib, windows) in sorted(classes.items()):
@@ -173,6 +204,7 @@ def main():
     parser.add_argument("--out", default=str(Path(__file__).resolve().parent / "results"))
     parser.add_argument("--parse-only", help="existing log name in the logs folder; no run")
     parser.add_argument("--sequence", default="", help="comma-separated SECONDS:BUTTON presses, e.g. 50:cross,65:cross,110:triangle; replaces the periodic presses")
+    parser.add_argument("--args", default="", help="command-line arguments passed to eboot.exe")
     parser.add_argument("--then-every", type=int, default=0, help="after the sequence, press cross every SECONDS (passes intermission screens in long runs)")
     parser.add_argument("--label-scene", help="store the last frame of run LABEL as reference scene NAME and exit")
     args = parser.parse_args()
@@ -189,7 +221,7 @@ def main():
     if args.parse_only:
         log, milestones = LOG_DIR / args.parse_only, {}
     else:
-        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count, [(float(t), b) for t, b in (item.split(':') for item in args.sequence.split(',') if item)], args.then_every)
+        log, milestones = run_game(log_name, args.seconds, env, args.press_after, args.press_every, args.press_count, [(float(t), b) for t, b in (item.split(':') for item in args.sequence.split(',') if item)], args.then_every, args.args)
         milestones.update(capture_scene(args.label))
     result = {"label": args.label, **milestones, **parse(log, args.skip_windows), "env": " ".join(f"{k}={v}" for k, v in env.items() if k not in BASE_ENV)}
     out = Path(args.out)
