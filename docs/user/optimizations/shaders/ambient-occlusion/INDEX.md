@@ -1,0 +1,22 @@
+# Ambient occlusion shader
+
+Status: `researched`
+
+## Cause
+
+Program 0x115258a000 is a GTAO-style ambient occlusion pass at 2348x1320. It has an outer loop over slices and an inner loop over steps, with two texture samples per step. It takes about 340 ms per run. In one menu scene it used about 40% of all GPU time.
+
+## Options
+
+| Option | Pros | Cons |
+|---|---|---|
+| Find why samples are slow (SPIR-V via `APS5_DUMP_SHADERS` and `agc_shader_replay --spv`) | Fixes the cause. | Not done yet. |
+| Run it on a separate queue (see [Queues](../../queues/INDEX.md)) | Graphics does not wait. | Large driver change. |
+
+## Result
+
+Not solved. The loop guard test shows the loops are short. Fast float and native FMA did not change its time much.
+
+## Why
+
+On the PS5 this pass takes a few ms. A 100x difference points to how its textures are bound or sampled. The SPIR-V is still needed.
