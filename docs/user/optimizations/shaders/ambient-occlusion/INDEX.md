@@ -15,7 +15,7 @@ Program 0x115258a000 is a GTAO-style ambient occlusion pass at 2348x1320. It has
 
 ## Result
 
-Not solved. The loop guard test shows the loops are short. Fast float and native FMA did not change its time much.
+Cause found (offline replay): each inner step runs about 816 FP64 operations in the `v_fma_mix*` emulation. See `shaders/fma-mix` in the shaders INDEX.md.
 
 ## Why
 
