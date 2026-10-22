@@ -4,9 +4,9 @@ Status: `researched`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x115258a000 ms per run | 338.52 | not implemented | n/a |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x115258a000 GPU ms per run | 338.52 (f16fma-5) | not implemented | not measured |  |
 
 ## Cause
 

@@ -4,9 +4,9 @@ Status: `rejected`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (win256 → devnext-skipstore) | 4.04 | 1.54-2.80 | worse, glyphs lost |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 4.04 (win256) | 1.54-2.80 (devnext-skipstore) | -62 to -31 | worse, text glyphs lost |
 
 ## Cause
 

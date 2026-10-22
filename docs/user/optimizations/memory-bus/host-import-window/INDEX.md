@@ -4,11 +4,11 @@ Status: `applied`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [256 MiB import window](window-256-mib/INDEX.md) | `applied` | Menu FPS (win8 → win256) | 2.02 | 4.04 | +100% |
-| [64 MiB import window](window-64-mib/INDEX.md) | `rejected` | Menu FPS (win8 → win64) | 2.02 | 3.48 | +72% |
-| [8 MiB import window](window-8-mib/INDEX.md) | `rejected` | Menu FPS (win8) | 2.02 | 2.02 | baseline |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [256 MiB import window](window-256-mib/INDEX.md) | `applied` | Menu FPS | 2.02 (win8) | 4.04 (win256) | 100 |  |
+| [64 MiB import window](window-64-mib/INDEX.md) | `rejected` | Menu FPS | 2.02 (win8) | 3.48 (win64) | 72 |  |
+| [8 MiB import window](window-8-mib/INDEX.md) | `rejected` | Menu FPS | 2.02 (win8) | 2.02 (win8) | 0 | baseline |
 
 ## Cause
 

@@ -4,9 +4,9 @@ Status: `researched`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x115258a000 ms per run | 339.48 | 339.48 | cause found, fix in testing |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x115258a000 GPU ms per run | 339.48 (stage1g) | 339.48 | 0 | cause found, fix in testing |
 
 ## Cause
 

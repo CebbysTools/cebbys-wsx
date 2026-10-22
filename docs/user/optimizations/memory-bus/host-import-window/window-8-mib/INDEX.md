@@ -4,9 +4,9 @@ Status: `rejected`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (win8) | 2.02 | 2.02 | baseline |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 2.02 (win8) | 2.02 (win8) | 0 | baseline |
 
 ## Cause
 

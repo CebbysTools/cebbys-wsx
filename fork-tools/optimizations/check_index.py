@@ -11,6 +11,8 @@ EVIDENCE_SECTIONS = ("## Evidence", "### Original", "### Change", "### Reason", 
 STATUSES = ("planned", "researched", "testing", "applied", "rejected", "no-gain")
 NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 LINK = re.compile(r"\]\(([^)#\s]+)\)")
+SIGNED_PERCENT = re.compile(r"(?<![\w|])[+-]\d+(?:\.\d+)?\s?%")
+REDUCTION_PERCENT = re.compile(r"\b(fell|dropped|reduced|decreased|lower|less|faster|slower) by \d+(?:\.\d+)?\s?%", re.IGNORECASE)
 
 
 def check_evidence(folder: Path, text: str, relative: Path, errors: list[str]) -> None:
@@ -53,6 +55,14 @@ def check_folder(folder: Path, root: Path, errors: list[str]) -> None:
         errors.append(f"{relative}/INDEX.md: section '## Improvement summary' is missing")
     elif "|---" not in summary.group(1):
         errors.append(f"{relative}/INDEX.md: '## Improvement summary' needs a table with the start and the current values")
+    elif "Improvement %" not in summary.group(1):
+        errors.append(f"{relative}/INDEX.md: '## Improvement summary' needs an 'Improvement %' column")
+    for match in SIGNED_PERCENT.finditer(text):
+        if match.group(0).startswith("-") and text[:match.start()].lower().endswith("improvement "):
+            continue
+        errors.append(f"{relative}/INDEX.md: '{match.group(0)}' uses a signed percentage; write the improvement % without a sign (negative only for worse, in an 'Improvement %' column or as 'improvement -N%')")
+    for match in REDUCTION_PERCENT.finditer(text):
+        errors.append(f"{relative}/INDEX.md: '{match.group(0)}' states a reduction; state the improvement % instead")
     links = {link for link in LINK.findall(text) if not link.startswith("http")}
     expected = {f"{child.name}/INDEX.md" for child in children}
     for link in sorted(expected - links):

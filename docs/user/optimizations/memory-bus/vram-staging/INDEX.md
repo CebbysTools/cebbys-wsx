@@ -4,9 +4,9 @@ Status: `no-gain`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (htileskip → stagereads) | 4.24 | 3.36 | -21% |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 4.24 (htileskip) | 3.36 (stagereads) | -21 | worse |
 
 ## Cause
 

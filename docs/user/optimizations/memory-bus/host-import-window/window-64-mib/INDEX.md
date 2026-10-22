@@ -4,9 +4,9 @@ Status: `rejected`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (win8 → win64) | 2.02 | 3.48 | +72% |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 2.02 (win8) | 3.48 (win64) | 72 |  |
 
 ## Cause
 
@@ -40,7 +40,7 @@ Large render targets did not fit in 8 MiB and were copied by the CPU.
 
 ### Improvement
 
-Menu FPS +72% against 8 MiB.
+Menu FPS 2.02 to 3.48 (improvement 72%).
 
 ### Timings
 

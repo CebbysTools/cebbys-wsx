@@ -4,11 +4,11 @@ Status: `testing`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [FP32 round-to-odd](f32-round-to-odd/INDEX.md) | `testing` | 0x115258a000 ms per run | 338.52 | not measured | pending |
-| [Keep FP64](keep-f64/INDEX.md) | `rejected` | 0x115258a000 ms per run | 339.48 | 338.52 | baseline |
-| [Native f16 when all operands are f16](native-f16-operands/INDEX.md) | `researched` | 0x115258a000 ms per run | 338.52 | not implemented | n/a |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [FP32 round-to-odd](f32-round-to-odd/INDEX.md) | `testing` | 0x115258a000 GPU ms per run | 338.52 (f16fma-5) | not measured | not measured | tests pass |
+| [Keep FP64](keep-f64/INDEX.md) | `rejected` | 0x115258a000 GPU ms per run | 339.48 (stage1g) | 338.52 (f16fma-5) | 0 | baseline |
+| [Native f16 when all operands are f16](native-f16-operands/INDEX.md) | `researched` | 0x115258a000 GPU ms per run | 338.52 (f16fma-5) | not implemented | not measured |  |
 
 ## Cause
 

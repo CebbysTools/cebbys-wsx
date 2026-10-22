@@ -4,9 +4,9 @@ Status: `testing`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x115258a000 ms per run | 338.52 | not measured | pending |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x115258a000 GPU ms per run | 338.52 (f16fma-5) | not measured | not measured | tests pass |
 
 ## Cause
 

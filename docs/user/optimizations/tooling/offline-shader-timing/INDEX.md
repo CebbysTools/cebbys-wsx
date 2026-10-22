@@ -4,9 +4,9 @@ Status: `researched`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Time to measure one shader change | 3-15 min game run | not implemented | n/a |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Time to measure one shader change | 3-15 min (game run) | not implemented | not measured |  |
 
 ## Cause
 

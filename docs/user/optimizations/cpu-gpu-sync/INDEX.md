@@ -4,9 +4,9 @@ Status: `testing`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [Skip read-backs](skip-readbacks/INDEX.md) | `testing` | Menu FPS (win256 → skipall) | 4.04 | 4.94 | +22% (diagnostic) |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [Skip read-backs](skip-readbacks/INDEX.md) | `testing` | Menu FPS | 4.04 (win256) | 4.94 (skipall) | 22 | diagnostic switches only |
 
 ## Cause
 

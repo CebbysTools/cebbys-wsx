@@ -51,6 +51,17 @@ Each `INDEX.md` below the root has these parts, in this order:
 - The root shows all optimizations together: one row for each step, from the first measurement to now, with the FPS and the change from the start. It also shows the goal.
 - Update all summaries on the path to the root after each new measurement.
 
+### Percentages
+
+- Use one measure for every change: the improvement %.
+- For FPS, and for any value where higher is better: improvement % = (now / start - 1) x 100.
+- For times, and for any value where lower is better: improvement % = (start / now - 1) x 100.
+- Higher is better. A time cut to half and an FPS that doubles both give 100.
+- Do not write a plus sign. Write a negative value only when the result is worse.
+- Do not write reductions ("fell by 22%", "-21%"). Write the improvement % instead.
+- Put the value in an `Improvement %` column, or write "improvement N%" in the text.
+- Every optimization gets a row with its improvement %, not only shaders. Use "not measured" when there is no number.
+
 ### Evidence
 
 A record without child folders and with status `testing`, `applied`, `rejected` or `no-gain` must prove its result. A record with child folders gives a summary only; its children hold the evidence. Add `## Evidence` after `## Why`, with these subsections in this order:

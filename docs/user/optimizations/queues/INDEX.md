@@ -4,9 +4,9 @@ Status: `researched`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [Async compute queue](async-compute-queue/INDEX.md) | `researched` | Graphics wait behind 0x115258a000 | about 340 ms per run | not implemented | n/a |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [Async compute queue](async-compute-queue/INDEX.md) | `researched` | Graphics wait behind 0x115258a000 | about 340 ms per run | not implemented | not measured |  |
 
 ## Cause
 

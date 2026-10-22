@@ -4,9 +4,9 @@ Status: `no-gain`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| Menu FPS (skipall → contract2) | 4.94 | 5.15 | +4%, inside spread |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| Menu FPS | 4.94 (skipall) | 5.15 (contract2) | 4 | inside run-to-run spread |
 
 ## Cause
 

@@ -4,9 +4,9 @@ Status: `no-gain`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x1152fa6000 ms per dispatch | 20.91 | 27.33 | no gain (no-cache run) |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x1152fa6000 GPU ms per dispatch | 20.91 (htileskip) | 27.33 (fastfloat) | -23 | run without shader cache |
 
 ## Cause
 

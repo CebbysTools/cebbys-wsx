@@ -4,9 +4,9 @@ Status: `rejected`
 
 ## Improvement summary
 
-| Metric | Start | Now | Change |
-|---|---|---|---|
-| 0x1152fa6000 ms per dispatch | 20.68 | 21.01-27.38 | worse |
+| Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|
+| 0x1152fa6000 GPU ms per dispatch | 20.68 (stage1g) | 21.01-27.38 (opt5, opt-warm) | -24 to -2 | worse |
 
 ## Cause
 

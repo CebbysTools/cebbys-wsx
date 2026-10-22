@@ -4,10 +4,10 @@ Status: `applied`
 
 ## Improvement summary
 
-| Optimization | Status | Metric | Start | Now | Change |
-|---|---|---|---|---|---|
-| [Default loop guard](default-guard/INDEX.md) | `applied` | GPU resets in a match | yes (nvlddmkm 153) | none | fixed |
-| [Loop guard 64 test](guard-64-test/INDEX.md) | `researched` | 0x115258a000 ms per run | 338.52 | 257.75 | test only, not a fix |
+| Optimization | Status | Metric | Start | Now | Improvement % | Note |
+|---|---|---|---|---|---|---|
+| [Default loop guard](default-guard/INDEX.md) | `applied` | GPU resets in a match | yes (nvlddmkm 153) | none | not a timing | stability fix |
+| [Loop guard 64 test](guard-64-test/INDEX.md) | `researched` | 0x115258a000 GPU ms per run | 338.52 (f16fma-5) | 257.75 (guard64b) | 31 | test only, not a fix |
 
 ## Cause
 
