@@ -24,7 +24,7 @@ Branch `perf/shader-native-f16-fma`. RTX 4070, driver 610.88, `shaderFmaFloat16 
 | `0x1150e42000` | 17.2 ms, 355k words | 14.9-17.9 ms, 172k words, 253 registers |
 | `0x115258a000` | 82.6k words | 65.5k words |
 
-Nine FP16 execution tests pass. Native results are bit-exact with the emulation (NaN payloads excepted). Tests with validation layers are not done yet.
+Nine FP16 execution tests pass. Native results are bit-exact with the emulation (NaN payloads excepted). With `VK_LAYER_KHRONOS_validation`, all nine pass with 0 `VUID-` errors (2026-10-22).
 
 ## Why
 
