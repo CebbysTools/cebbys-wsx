@@ -269,6 +269,21 @@ void recordCmaskClear(const Context& context, Recorder& recorder, const HostImpo
 
 bool materializeCmaskClear(const Context& context, const ColorTarget& color, const std::shared_ptr<StorageTexture>& resident) {
     if (color.cmaskAddress == 0) return false;
+    if (color.cmaskSlices > 1) {
+        bool stored = false;
+        for (std::uint32_t index = 0; index < color.cmaskSlices; ++index) {
+            ColorTarget part = color;
+            part.cmaskSlices = 1;
+            part.surfaceAddress += index * color.sliceStride;
+            part.address += index * color.sliceStride;
+            part.cmaskAddress += index * color.cmaskSliceStride;
+            part.arrayLastSlice = 0;
+            part.layers = 1;
+            stored = materializeCmaskClear(context, part, nullptr) || stored;
+        }
+        if (stored && resident != nullptr) resident->Refresh();
+        return false;
+    }
     if (context.detiler != nullptr) requireCmaskCodes(context.detiler->CmaskErrors());
     const CmaskLayout layout(color.extent.width, color.extent.height);
     const auto bytes = layout.Bytes();
@@ -1477,6 +1492,10 @@ struct IndirectRecord {
 // GPU-side indirect draw from `argumentBuffer` or the CPU-read records with the driver's rules.
 void recordDrawCommands(const Context& context, VkCommandBuffer commands, const State& state, const Pm4::DrawParameters& draw, const DrawInputs& inputs, const IndirectRecord* indirect, VkBuffer argumentBuffer, VkDeviceSize argumentOffset, std::uint32_t firstIndex = 0) {
     if (context.recorder != nullptr) context.recorder->NoteSampledDraw(commands);
+    if (context.checkpointMarker != nullptr) {
+        static std::atomic<std::uint64_t> draws{0};
+        context.checkpointMarker(commands, reinterpret_cast<const void*>(static_cast<std::uintptr_t>(0xd000000000000000ull | draws.fetch_add(1, std::memory_order_relaxed))));
+    }
     const auto* args = indirect != nullptr ? indirect->args : nullptr;
     if (state.stages.mesh && args != nullptr) {
         context.Function<PFN_vkCmdDrawMeshTasksIndirectEXT>("vkCmdDrawMeshTasksIndirectEXT")(commands, argumentBuffer, argumentOffset, 1, sizeof(VkDrawMeshTasksIndirectCommandEXT));

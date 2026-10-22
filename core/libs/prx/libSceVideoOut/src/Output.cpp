@@ -2,9 +2,12 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <cmath>
 
 #include "SceTypes.hpp"
@@ -17,9 +20,22 @@
 static constexpr std::uint32_t VIDEO_OUT_OUTPUT_OPTIONS_FIRST_WORD = 0x00FF0000;
 static constexpr std::size_t VIDEO_OUT_OUTPUT_OPTIONS_FREE_WORD = 3;
 
+static std::uint32_t configuredOutputResolution() {
+    static const std::uint32_t resolution = [] {
+        const char* value = std::getenv("ANYPS5_OUTPUT_RESOLUTION");
+        if (value == nullptr || *value == '\0') return 0u;
+        const std::string_view name(value);
+        if (name == "2160p") return 2u;
+        if (name == "1080p") return 1u;
+        throw std::runtime_error("ANYPS5_OUTPUT_RESOLUTION: expected 2160p or 1080p, got " + std::string(name));
+    }();
+    return resolution;
+}
+
 static VideoOutOutputStatus outputStatus(const auto& cfg) {
     VideoOutOutputStatus status{};
-    status.resolution = (cfg.width >= 3840 || cfg.height >= 2160) ? 2u : 1u;
+    const std::uint32_t configured = configuredOutputResolution();
+    status.resolution = configured != 0u ? configured : (cfg.width >= 3840 || cfg.height >= 2160) ? 2u : 1u;
     const bool hdr = AgcDriver::CurrentHostHdr().available;
     status.dynamicRange = hdr ? VIDEO_OUT_DYNAMIC_RANGE_HDR : VIDEO_OUT_DYNAMIC_RANGE_SDR;
     status.refreshRate = (cfg.outputMode == VIDEO_OUT_OUTPUT_MODE_119_88HZ) ? VIDEO_OUT_REFRESH_RATE_119_88HZ : VIDEO_OUT_REFRESH_RATE_59_94HZ;

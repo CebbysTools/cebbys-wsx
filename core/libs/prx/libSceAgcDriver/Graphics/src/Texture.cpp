@@ -84,6 +84,7 @@ thread_local const char* flushReason = nullptr;
 // (units taken from an alias image on the device); set by the constructor and Refresh around
 // upload() and borrowUnits().
 thread_local const char* uploadReason = "first";
+std::atomic<std::uint64_t> skippedStoreUploads{0};
 // Block-unit traffic, per 10 s like the rest of the [storage] line: partial uploads and write-backs
 // (count and bytes), write-backs that stored nothing (every selected block CPU-written), partial
 // selections widened to every pending unit (the hysteresis in writeBack), units dropped as dead
@@ -135,6 +136,8 @@ void reportStorageTraffic(StorageTraffic& traffic) {
         std::snprintf(text, sizeof(text), " %llu/%.1f", static_cast<unsigned long long>(totals.first), totals.second / 1048576.0);
         line += " " + reason + text;
     }
+    std::snprintf(text, sizeof(text), " (store re-uploads skipped %llu)", static_cast<unsigned long long>(skippedStoreUploads.exchange(0, std::memory_order_relaxed)));
+    line += text;
     line += "; write-backs by reason (count/MiB):";
     for (const auto& [reason, totals] : traffic.writeBacks) {
         std::snprintf(text, sizeof(text), " %llu/%.1f", static_cast<unsigned long long>(totals.first), totals.second / 1048576.0);
@@ -2280,7 +2283,17 @@ bool StorageTexture::Refresh() {
         }
         refreshGeneration();
     }
-    if (std::any_of(changed.begin(), changed.end(), [](bool selected) { return selected; })) {
+    static const bool skipStoreUploads = std::getenv("APS5_SKIP_STORE_UPLOADS") != nullptr;
+    const bool anyChanged = std::any_of(changed.begin(), changed.end(), [](bool selected) { return selected; });
+    if (anyChanged && skipStoreUploads && !keysChanged && !cpuWrote && generation != 0) {
+        uploadedKeys = keys;
+        const auto now = GuestMemory::CollectWrites(descriptor.baseAddress, static_cast<std::size_t>(guestBytes));
+        for (std::uint32_t unit = 0; unit < trackedLayers; ++unit) {
+            if (changed[unit] && !layerPending[unit]) layerGeneration[unit] = now;
+        }
+        refreshGeneration();
+        skippedStoreUploads.fetch_add(1, std::memory_order_relaxed);
+    } else if (anyChanged) {
         uploadReason = keysChanged ? "keys" : cpuWrote ? "cpu" : generation == 0 ? "untracked" : flushed ? "flushed" : "store";
         upload(&changed);
     } else {

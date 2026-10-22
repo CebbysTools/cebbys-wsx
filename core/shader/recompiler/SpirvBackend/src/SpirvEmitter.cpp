@@ -19,6 +19,8 @@ namespace ShaderRecompiler {
 
 namespace {
 
+constexpr std::uint32_t DefaultLoopGuardLimit = 1u << 17u;
+
 std::string FailureText(const IrProgram& program) {
     char hash[24];
     std::snprintf(hash, sizeof(hash), "%llx", static_cast<unsigned long long>(program.Resources().shaderHash));
@@ -310,7 +312,8 @@ std::vector<std::uint32_t> SpirvEmitter::Emit(const IrProgram& program, const Sh
         state.tableIndexNonUniform = threads > program.WaveSize() || !oneSubgroup;
     }
     state.waveLdsScope = WaveLdsScope(program, workgroup, state.laneCount);
-    if (const char* guard = std::getenv("APS5_LOOP_GUARD")) state.loopGuardLimit = static_cast<std::uint32_t>(std::strtoul(guard, nullptr, 0));
+    const char* guard = std::getenv("APS5_LOOP_GUARD");
+    state.loopGuardLimit = guard == nullptr ? DefaultLoopGuardLimit : static_cast<std::uint32_t>(std::strtoul(guard, nullptr, 0));
     // Stopped invocations would leave the wave LDS barriers incomplete.
     state.bdaStopsInvocations = state.waveLdsScope == 0 && !state.spannedWave && BdaInvocationsMayStop(program) && program.Resources().stage != IrShaderStage::Mesh;
     EmitModuleHeader(state, bindings);

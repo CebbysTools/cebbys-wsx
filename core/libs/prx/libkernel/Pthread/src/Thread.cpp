@@ -14,7 +14,10 @@
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <condition_variable>
+#include <deque>
 #include <map>
+#include <mutex>
 #include <utility>
 #include <vector>
 #include <string>
@@ -497,7 +500,7 @@ bool GuestThreadCpuNanos(int cpuClockThread, std::uint64_t* nanos) {
         *nanos = 0;
         return true;
     }
-    if (WaitForSingleObject(thread->nativeHandle, 0) == WAIT_OBJECT_0)
+    if (WaitForSingleObject(static_cast<HANDLE>(thread->doneEvent != nullptr ? thread->doneEvent : thread->nativeHandle), 0) == WAIT_OBJECT_0)
         return false;
     FILETIME creation{};
     FILETIME exitTime{};
@@ -675,6 +678,8 @@ static void ReleaseThread(PthreadPrivate* thread) {
 #ifdef _WIN32
     if (thread->wakeEvent)
         CloseHandle(static_cast<HANDLE>(thread->wakeEvent));
+    if (thread->doneEvent)
+        CloseHandle(static_cast<HANDLE>(thread->doneEvent));
     if (!CloseHandle(thread->nativeHandle))
         throw std::system_error(GetLastError(), std::system_category(), "Closing guest thread handle");
 #endif
@@ -740,6 +745,33 @@ struct NativeThreadArgs {
 };
 
 #ifdef _WIN32
+struct RetiredHostThread {
+    std::mutex mutex;
+    std::condition_variable wake;
+    bool released = false;
+};
+
+static constexpr std::size_t MAX_RETIRED_HOST_THREADS = 256;
+static std::mutex retiredHostThreadsLock;
+static std::deque<RetiredHostThread*> retiredHostThreads;
+
+static void RetireHostThread() {
+    RetiredHostThread retired;
+    {
+        std::lock_guard lock(retiredHostThreadsLock);
+        retiredHostThreads.push_back(&retired);
+        if (retiredHostThreads.size() > MAX_RETIRED_HOST_THREADS) {
+            RetiredHostThread* oldest = retiredHostThreads.front();
+            retiredHostThreads.pop_front();
+            std::lock_guard oldestLock(oldest->mutex);
+            oldest->released = true;
+            oldest->wake.notify_one();
+        }
+    }
+    std::unique_lock lock(retired.mutex);
+    retired.wake.wait(lock, [&] { return retired.released; });
+}
+
 static unsigned __stdcall StartNativeThread(void* opaque) {
     std::unique_ptr<NativeThreadArgs> args(static_cast<NativeThreadArgs*>(opaque));
     auto* self = args->guest->self;
@@ -770,7 +802,9 @@ static unsigned __stdcall StartNativeThread(void* opaque) {
     args.reset();
     RunThread(std::move(guest));
     CurrentGuestState().current = nullptr;
+    SetEvent(static_cast<HANDLE>(self->doneEvent));
     ReleaseThread(self);
+    RetireHostThread();
     return 0;
 }
 #else
@@ -842,11 +876,16 @@ int APS5_VABI scePthreadCreate(Pthread* thread, const PthreadAttr* attr, Pthread
     if (p->stackSize < 16384 || p->stackSize > std::numeric_limits<unsigned>::max() - HOST_STACK_MARGIN - system.dwPageSize)
         throw std::runtime_error("scePthreadCreate: invalid Windows stack size");
     const std::size_t nativeStack = (p->stackSize + HOST_STACK_MARGIN + system.dwPageSize - 1) / system.dwPageSize * system.dwPageSize;
+    p->doneEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+    if (p->doneEvent == nullptr)
+        throw std::system_error(static_cast<int>(GetLastError()), std::system_category(), "Creating guest thread");
     auto native = std::make_unique<NativeThreadArgs>(NativeThreadArgs{std::move(args), start.get_future(), {}});
     auto initialized = native->initialized.get_future();
     const auto handle = _beginthreadex(nullptr, static_cast<unsigned>(nativeStack), StartNativeThread, native.get(), 0, nullptr);
-    if (handle == 0)
+    if (handle == 0) {
+        CloseHandle(static_cast<HANDLE>(p->doneEvent));
         throw std::system_error(errno, std::generic_category(), "Creating guest thread");
+    }
     p->nativeHandle = reinterpret_cast<void*>(handle);
     native.release();
     try {
@@ -854,6 +893,7 @@ int APS5_VABI scePthreadCreate(Pthread* thread, const PthreadAttr* attr, Pthread
     } catch (...) {
         start.set_value(false);
         WaitForSingleObject(p->nativeHandle, INFINITE);
+        CloseHandle(static_cast<HANDLE>(p->doneEvent));
         CloseHandle(p->nativeHandle);
         throw;
     }
@@ -951,7 +991,7 @@ int APS5_VABI scePthreadJoin(Pthread thread, void** retval) {
         if (thread->_joined.exchange(true, std::memory_order_acq_rel)) return SCE_KERNEL_ERROR_ESRCH;
     }
 #ifdef _WIN32
-    if (WaitForSingleObject(thread->nativeHandle, INFINITE) != WAIT_OBJECT_0)
+    if (WaitForSingleObject(static_cast<HANDLE>(thread->doneEvent != nullptr ? thread->doneEvent : thread->nativeHandle), INFINITE) != WAIT_OBJECT_0)
         throw std::system_error(GetLastError(), std::system_category(), "Joining guest thread");
     if (retval) *retval = thread->_retval;
 #else

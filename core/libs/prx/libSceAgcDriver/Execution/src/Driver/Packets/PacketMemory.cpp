@@ -113,7 +113,25 @@ bool Driver::preparePacketMemory(const Submission& submission, QueueState& queue
     }
 
     static const bool cpuStores = std::getenv("APS5_CPU_STORES") != nullptr;
-    if (!drainAll && !cpuStores && (opcode == 0x40 || opcode == 0x50 || opcode == 0x83)) {
+    bool gdsCopied = false;
+    if (!drainAll && opcode == 0x50 && packet.size() >= 7 && Pm4::DmaDestination(packet) == 1 && (Pm4::DmaSource(packet) == 0 || Pm4::DmaSource(packet) == 3) && packet[5] == 0) {
+        const auto source = packet[2] | (static_cast<std::uint64_t>(packet[3]) << 32u);
+        const auto destination = Pm4::GdsAddress() + packet[4];
+        const auto bytes = Pm4::DmaBytes(packet);
+        if (bytes != 0 && bytes % 4 == 0 && source % 4 == 0 && GuestMemory::Accessible(reinterpret_cast<const void*>(source), bytes) && GuestMemory::Accessible(reinterpret_cast<const void*>(destination), bytes, true)) {
+            GuestMemory::TagGpuLockSite(GuestMemory::GpuLockSite::Copy);
+            std::lock_guard gpuLock(GuestMemory::GpuMutex());
+            if (const auto localDevice = device.Load(); localDevice != nullptr && localDevice->GpuCopyPossible(destination, source, bytes)) {
+                recordDeferredLabels(localDevice.get(), submission.queue);
+                const auto outcome = localDevice->CopyBuffer(destination, source, bytes, 0, std::numeric_limits<std::size_t>::max(), 0, 0, submission.queue, [](std::span<const std::byte>, std::uint64_t) {});
+                if (outcome.path == 1 || outcome.path == 3) {
+                    wroteOnGpu = true;
+                    gdsCopied = true;
+                }
+            }
+        }
+    }
+    if (!gdsCopied && !drainAll && !cpuStores && (opcode == 0x40 || opcode == 0x50 || opcode == 0x83)) {
         constexpr std::size_t gpuStoreLimit = 65536;
         bool drained = true;
         const auto copy = opcode == 0x50 ? Pm4::DecodeMemoryCopy(packet) : std::nullopt;

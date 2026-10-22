@@ -1040,9 +1040,9 @@ bool TranslationContext::emitVector(const RdnaInstruction& inst) {
     case RdnaOpcode::VMulF32:
         return floatBinary(inst, IrOpcode::FPMul32, false);
     case RdnaOpcode::VMinF32:
-        return ieeeMode ? ieeeMinMaxF32(inst, IrOpcode::FPMin32) : floatBinary(inst, IrOpcode::FPMin32, false);
+        return ieeeMode && !fastFloat() ? ieeeMinMaxF32(inst, IrOpcode::FPMin32) : floatBinary(inst, IrOpcode::FPMin32, false);
     case RdnaOpcode::VMaxF32:
-        return ieeeMode ? ieeeMinMaxF32(inst, IrOpcode::FPMax32) : floatBinary(inst, IrOpcode::FPMax32, false);
+        return ieeeMode && !fastFloat() ? ieeeMinMaxF32(inst, IrOpcode::FPMax32) : floatBinary(inst, IrOpcode::FPMax32, false);
     case RdnaOpcode::VDivScaleF32:
         return vDivScaleF32(inst);
     case RdnaOpcode::VDivFmasF32:

@@ -1197,6 +1197,12 @@ std::shared_ptr<StorageTexture> cachedStorageTexture(const Context& context, std
 
 }
 
+namespace {
+
+constexpr std::uint64_t SampledTextureFloor = 1024ull << 20u;
+
+}
+
 std::uint64_t TextureCacheBudget(const VkPhysicalDeviceMemoryProperties& memory) {
     const auto heap = largestDeviceLocalHeap(memory);
     return std::max<std::uint64_t>(2048ull << 20u, heap ? memory.memoryHeaps[*heap].size / 4u : 0u);
@@ -1207,7 +1213,7 @@ std::uint64_t StorageTextureBudget(const VkPhysicalDeviceMemoryProperties& memor
     if (reported == nullptr || !heap || reported->heapBudget[*heap] == 0) return TextureCacheBudget(memory);
     const auto budget = reported->heapBudget[*heap];
     const auto usage = reported->heapUsage[*heap];
-    const auto reserved = usage - std::min<std::uint64_t>(usage, sampledBytes + storageBytes) + sampledBytes + budget / 8u;
+    const auto reserved = usage - std::min<std::uint64_t>(usage, sampledBytes + storageBytes) + std::min<std::uint64_t>(sampledBytes, SampledTextureFloor) + budget / 8u;
     const auto cap = std::min<std::uint64_t>(TextureCacheBudget(memory), budget / 4u);
     return std::max<std::uint64_t>(512ull << 20u, std::min<std::uint64_t>(cap, budget > reserved ? budget - reserved : 0u));
 }
@@ -1218,7 +1224,7 @@ std::uint64_t SampledTextureBudget(const VkPhysicalDeviceMemoryProperties& memor
     const auto budget = reported->heapBudget[*heap];
     const auto usage = reported->heapUsage[*heap];
     const auto reserved = usage - std::min<std::uint64_t>(usage, textureBytes) + TextureCacheBudget(memory) + budget / 8u;
-    return std::max<std::uint64_t>(2048ull << 20u, budget > reserved ? budget - reserved : 0u);
+    return std::max<std::uint64_t>(SampledTextureFloor, budget > reserved ? budget - reserved : 0u);
 }
 
 bool SampledBudgetReportDue(std::uint64_t reported, std::uint64_t budget, std::chrono::steady_clock::duration sinceReport) {
@@ -2477,7 +2483,10 @@ std::atomic<std::uint64_t> depthGuardRefusals{0};
 namespace {
 
 bool LoopGuardEnabled() {
-    static const bool enabled = std::getenv("APS5_LOOP_GUARD") != nullptr;
+    static const bool enabled = [] {
+        const char* value = std::getenv("APS5_LOOP_GUARD");
+        return value == nullptr || std::strtoul(value, nullptr, 0) != 0;
+    }();
     return enabled;
 }
 

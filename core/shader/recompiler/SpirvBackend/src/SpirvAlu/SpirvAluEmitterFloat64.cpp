@@ -1,6 +1,7 @@
 #include "SpirvBackend/SpirvEmitterInstructions.hpp"
 #include <spirv/unified1/GLSL.std.450.h>
 #include <spirv/unified1/spirv.hpp>
+#include <algorithm>
 #include <array>
 #include <initializer_list>
 #include <iterator>
@@ -984,12 +985,86 @@ std::uint32_t CallInterpolate(SpirvEmitterState& state, std::uint32_t delta, std
 
 }
 
+namespace {
+
+constexpr std::uint32_t FmaKhrCapability = 6030u;
+constexpr std::uint32_t FmaKhrOpcode = 4427u;
+
+bool FusedFma32(const SpirvEmitterState& state) {
+    return !state.integerInterpolation && std::find(state.supportedCapabilities.begin(), state.supportedCapabilities.end(), FmaKhrCapability) != state.supportedCapabilities.end();
+}
+
+std::uint32_t InterpolateFast(SpirvEmitterState& state, std::uint32_t delta, std::uint32_t coordinate, std::uint32_t base, bool halfResult, std::uint32_t mode, std::uint32_t& fast) {
+    const auto u32 = TypeU32(state);
+    const auto f32 = TypeF32(state);
+    const auto boolean = TypeBool(state);
+    const bool flush32 = (mode & InterpolationFlush32) != 0u;
+    const bool flush16 = (mode & InterpolationFlush16) != 0u;
+    const auto op = [&](spv::Op opcode, std::uint32_t lhs, std::uint32_t value) { return Binary(state, opcode, u32, lhs, ConstantU32(state, value)); };
+    const auto test = [&](spv::Op opcode, std::uint32_t lhs, std::uint32_t value) { return Binary(state, opcode, boolean, lhs, ConstantU32(state, value)); };
+    const auto all = [&](std::uint32_t lhs, std::uint32_t rhs) { return Binary(state, spv::OpLogicalAnd, boolean, lhs, rhs); };
+    const auto any = [&](std::uint32_t lhs, std::uint32_t rhs) { return Binary(state, spv::OpLogicalOr, boolean, lhs, rhs); };
+    const auto bits = [&](std::uint32_t value) { return Unary(state, spv::OpBitcast, u32, value); };
+    const auto magnitude = [&](std::uint32_t value) { return op(spv::OpBitwiseAnd, bits(value), 0x7fffffffu); };
+    const auto zeroOrWithin = [&](std::uint32_t value, std::uint32_t low, std::uint32_t high) {
+        const auto size = magnitude(value);
+        return any(test(spv::OpIEqual, size, 0u), all(test(spv::OpUGreaterThanEqual, size, low), test(spv::OpULessThan, size, high)));
+    };
+    const auto fused = [&](std::uint32_t a, std::uint32_t b, std::uint32_t c) {
+        const auto result = state.module.AllocateId();
+        state.module.AddFunction(FmaKhrOpcode, f32, result, a, b, c);
+        return result;
+    };
+    state.module.EmitCapability(FmaKhrCapability);
+    state.module.EmitExtension("SPV_KHR_fma");
+    delta = FlushDenormal32(state, delta, flush16, 0x38800000u);
+    coordinate = FlushDenormal32(state, coordinate, flush32, 0x00800000u);
+    base = halfResult ? FlushDenormal32(state, base, flush32, 0x00800000u) : FlushDenormal32(state, base, flush16, 0x38800000u);
+    const auto nearest = fused(delta, coordinate, base);
+    const auto nearestMagnitude = magnitude(nearest);
+    if (!halfResult) {
+        fast = all(all(zeroOrWithin(delta, 0x00800000u, 0x7f800000u), zeroOrWithin(coordinate, 0x00800000u, 0x7f800000u)), zeroOrWithin(base, 0x00800000u, 0x7f800000u));
+        fast = all(fast, all(test(spv::OpUGreaterThanEqual, nearestMagnitude, 0x00800000u), test(spv::OpULessThan, nearestMagnitude, 0x7f800000u)));
+        return nearest;
+    }
+    fast = all(all(zeroOrWithin(delta, 0x2b800000u, 0x53800000u), zeroOrWithin(coordinate, 0x2b800000u, 0x53800000u)), zeroOrWithin(base, 0x17800000u, 0x67800000u));
+    const auto product = ExactF32(state, spv::OpFMul, delta, coordinate);
+    const auto productError = fused(delta, coordinate, Unary(state, spv::OpFNegate, f32, product));
+    const auto low = TwoSumF32(state, base, productError);
+    const auto high = TwoSumF32(state, product, low[0]);
+    const auto gamma = ExactF32(state, spv::OpFAdd, ExactF32(state, spv::OpFSub, high[0], nearest), high[1]);
+    const auto error = bits(ExactF32(state, spv::OpFAdd, gamma, low[1]));
+    const auto nearestBits = bits(nearest);
+    const auto inexact = test(spv::OpINotEqual, op(spv::OpBitwiseAnd, error, 0x7fffffffu), 0u);
+    const auto even = test(spv::OpIEqual, op(spv::OpBitwiseAnd, nearestBits, 1u), 0u);
+    const auto sameSign = test(spv::OpIEqual, op(spv::OpBitwiseAnd, Binary(state, spv::OpBitwiseXor, u32, nearestBits, error), 0x80000000u), 0u);
+    const auto odd = Binary(state, spv::OpIAdd, u32, nearestBits, Select(state, u32, sameSign, ConstantU32(state, 1u), ConstantU32(state, 0xffffffffu)));
+    const auto roundedToOdd = Select(state, u32, all(inexact, even), odd, nearestBits);
+    const auto oddMagnitude = op(spv::OpBitwiseAnd, roundedToOdd, 0x7fffffffu);
+    fast = all(fast, all(test(spv::OpUGreaterThanEqual, oddMagnitude, 0x38800000u), test(spv::OpULessThan, oddMagnitude, 0x477ff000u)));
+    const auto roundBit = op(spv::OpBitwiseAnd, op(spv::OpShiftRightLogical, roundedToOdd, 13u), 1u);
+    const auto rounded = op(spv::OpBitwiseAnd, Binary(state, spv::OpIAdd, u32, op(spv::OpIAdd, roundedToOdd, 0x0fffu), roundBit), 0xffffe000u);
+    return Unary(state, spv::OpBitcast, f32, rounded);
+}
+
+std::uint32_t EmitInterpolate(SpirvEmitterState& state, std::uint32_t arg0, std::uint32_t arg1, std::uint32_t arg2, bool halfResult, std::uint32_t mode) {
+    const bool directed = halfResult && ((mode >> InterpolationRound16Shift) & 3u) != 0u;
+    if (directed || !FusedFma32(state)) return CallInterpolate(state, arg0, arg1, arg2, halfResult, mode);
+    std::uint32_t fast = 0;
+    const auto fastResult = InterpolateFast(state, arg0, arg1, arg2, halfResult, mode, fast);
+    return EmitValueOrDefaultIfCondition(state, Unary(state, spv::OpLogicalNot, TypeBool(state), fast), TypeF32(state), fastResult, [&] {
+        return CallInterpolate(state, arg0, arg1, arg2, halfResult, mode);
+    });
+}
+
+}
+
 std::uint32_t EmitFPInterpolateF32(SpirvEmitterState& state, std::uint32_t arg0, std::uint32_t arg1, std::uint32_t arg2, const IrValue* mode) {
-    return CallInterpolate(state, arg0, arg1, arg2, false, mode->ImmediateU32());
+    return EmitInterpolate(state, arg0, arg1, arg2, false, mode->ImmediateU32());
 }
 
 std::uint32_t EmitFPInterpolateF16(SpirvEmitterState& state, std::uint32_t arg0, std::uint32_t arg1, std::uint32_t arg2, const IrValue* mode) {
-    return CallInterpolate(state, arg0, arg1, arg2, true, mode->ImmediateU32());
+    return EmitInterpolate(state, arg0, arg1, arg2, true, mode->ImmediateU32());
 }
 
 std::uint32_t EmitConvertF32F64(SpirvEmitterState& state, std::uint32_t arg0) {

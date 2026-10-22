@@ -1573,6 +1573,15 @@ ImportRun windowRun(const HostImports& state, ImportRun run, std::uint64_t begin
             windowBegin = std::min(windowBegin, it->second.base);
             windowEnd = std::max(windowEnd, importEnd);
         }
+        std::uintptr_t residentBegin = 0;
+        std::uintptr_t residentEnd = 0;
+        if (GuestArena::GuestArenaResidentSpan_nid_postfix(static_cast<std::uintptr_t>(windowBegin), static_cast<std::size_t>(windowEnd - windowBegin), &residentBegin, &residentEnd)) {
+            const auto alignedBegin = std::max<std::uint64_t>(range.address, residentBegin / alignment * alignment);
+            const auto alignedEnd = std::min<std::uint64_t>(range.address + range.bytes, (residentEnd + alignment - 1) / alignment * alignment);
+            if (alignedBegin < windowBegin || alignedEnd > windowEnd) grown = true;
+            windowBegin = std::min<std::uint64_t>(windowBegin, alignedBegin);
+            windowEnd = std::max<std::uint64_t>(windowEnd, alignedEnd);
+        }
     }
     if (windowBegin % alignment != 0 || (windowEnd - windowBegin) % alignment != 0) return run;
     run.base = windowBegin;
@@ -1790,6 +1799,9 @@ const HostImport* importRunAt(const Context& context, HostImports& state, Import
             std::snprintf(text, sizeof(text), "AGC graphics: host import of 0x%llx+0x%llx: memory at 0x%llx (type 0x%lx, protection 0x%lx) is neither read-write, read-only nor a shared mapping", static_cast<unsigned long long>(base), static_cast<unsigned long long>(bytes), reinterpret_cast<unsigned long long>(refused.BaseAddress), refused.Type, refused.Protect);
             throw std::runtime_error(text);
         }
+        std::uintptr_t residentBegin = 0;
+        std::uintptr_t residentEnd = 0;
+        if (GuestArena::GuestArenaResidentSpan_nid_postfix(static_cast<std::uintptr_t>(base), static_cast<std::size_t>(bytes), &residentBegin, &residentEnd) && (residentBegin < base || residentEnd > base + bytes)) return failedImport();
         try {
             entry.alias = GuestArena::GuestArenaMapAlias_nid_postfix(static_cast<std::uintptr_t>(base), static_cast<std::size_t>(bytes));
         } catch (const std::runtime_error&) {
