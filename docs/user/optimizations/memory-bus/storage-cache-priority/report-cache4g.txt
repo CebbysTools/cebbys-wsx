@@ -1,0 +1,11 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench cache2g: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=202, failure=AGC driver: a pixel shader that reads barycentrics without VK_KHR_fragment_shader_barycentric needs a vertex shader before it, env=APS5_TEXTURE_CACHE_MIB=2048
+log bench-cache2g.log: 1 [gputime] windows of 10 s
+  program ...8bd1200: 6 dispatches, 0 ms, 0.00 ms each
+  program ...8bd0c00: 6 dispatches, 0 ms, 0.00 ms each
+  program ...8bd0f00: 6 dispatches, 0 ms, 0.00 ms each
+bench cache4g: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=0, failure=AGC graphics: vkAllocateMemory texture: allocation=701440 memoryType=0 reclaimed=1275220272 released=86084352 initialResult=-2 attempts=3; heap 0 11526/11242 Mi, env=APS5_TEXTURE_CACHE_MIB=4096 APS5_BUFFER_POOL_SLOTS=256
+log bench-cache4g.log: 62 [gputime] windows of 10 s
+  program ...2fa6000: 610 dispatches, 13959 ms, 22.88 ms each
+  program ...258a000: 39 dispatches, 13197 ms, 338.38 ms each
+  program ...1ddc800: 278 dispatches, 9815 ms, 35.31 ms each

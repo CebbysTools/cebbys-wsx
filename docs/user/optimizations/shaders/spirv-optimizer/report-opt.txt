@@ -1,0 +1,16 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench opt-warm: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=26477, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_OPTIMIZE_PROGRAMS=1152fa6000,1161544500,1150e42000,1150f13800,1152eb5800
+log bench-opt-warm.log: 35 [gputime] windows of 10 s
+  program ...2fa6000: 2457 dispatches, 67284 ms, 27.38 ms each
+  program ...0e42000: 2430 dispatches, 42391 ms, 17.44 ms each
+  program ...0100100: 78557 dispatches, 16196 ms, 0.21 ms each
+bench opt5: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=83, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_OPTIMIZE_PROGRAMS=1152fa6000,1161544500,1150e42000,1150f13800,1152eb5800
+log bench-opt5.log: 6 [gputime] windows of 10 s
+  program ...2fa6000: 100 dispatches, 2101 ms, 21.01 ms each
+  program ...0e42000: 56 dispatches, 1158 ms, 20.68 ms each
+  program ...0100100: 3095 dispatches, 567 ms, 0.18 ms each
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench stage1g: fps_mean=3.56, fps_min_window=2.3, fps_max_window=3.9, gpu_busy_ms_per_frame=247.34, gpu_idle_ms_per_frame=50.56, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_EXPERIMENT_STAGE_READS_MIB=1024 APS5_WRITTEN_SHADOW_MAX_KIB=1048576
+log bench-stage1g.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 474 dispatches, 9804 ms, 20.68 ms each
+  program ...0e42000: 272 dispatches, 4676 ms, 17.19 ms each

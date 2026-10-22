@@ -2,6 +2,18 @@
 
 Status: `testing`
 
+## Improvement summary
+
+| Optimization | Status | Metric | Start | Now | Change |
+|---|---|---|---|---|---|
+| [GDS copy on GPU](gds-copy-on-gpu/INDEX.md) | `no-gain` | Device drains per 10 s | 1050 | 0 | -100%; FPS unchanged |
+| [Host import window](host-import-window/INDEX.md): 256 MiB import window | `applied` | Menu FPS (win8 → win256) | 2.02 | 4.04 | +100% |
+| [Host import window](host-import-window/INDEX.md): 64 MiB import window | `rejected` | Menu FPS (win8 → win64) | 2.02 | 3.48 | +72% |
+| [Host import window](host-import-window/INDEX.md): 8 MiB import window | `rejected` | Menu FPS (win8) | 2.02 | 2.02 | baseline |
+| [Skip store re-uploads](skip-store-reuploads/INDEX.md) | `rejected` | Menu FPS (win256 → devnext-skipstore) | 4.04 | 1.54-2.80 | worse, glyphs lost |
+| [Storage cache priority](storage-cache-priority/INDEX.md) | `applied` | Menu FPS | not measured | not measured | report not kept |
+| [VRAM staging](vram-staging/INDEX.md) | `no-gain` | Menu FPS (htileskip → stagereads) | 4.24 | 3.36 | -21% |
+
 ## Cause
 
 On the PS5, the CPU and the GPU use the same memory. On Windows, game memory stays in system RAM, and the GPU reads it over PCIe.

@@ -1,0 +1,13 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench htileskip: fps_mean=4.24, fps_min_window=2.9, fps_max_window=4.6, gpu_busy_ms_per_frame=178.88, gpu_idle_ms_per_frame=72.48, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1
+log bench-htileskip.log: 10 [gputime] windows of 10 s
+  program ...258a000: 37 dispatches, 12537 ms, 338.84 ms each
+  program ...2fa6000: 472 dispatches, 9869 ms, 20.91 ms each
+  program ...0e42000: 254 dispatches, 4353 ms, 17.14 ms each
+  program ...1544500: 233 dispatches, 4090 ms, 17.55 ms each
+bench stagereads: fps_mean=3.36, fps_min_window=2.9, fps_max_window=3.5, gpu_busy_ms_per_frame=229.82, gpu_idle_ms_per_frame=71.16, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_EXPERIMENT_STAGE_READS_MIB=64
+log bench-stagereads.log: 10 [gputime] windows of 10 s
+  program ...258a000: 45 dispatches, 15272 ms, 339.38 ms each
+  program ...2fa6000: 363 dispatches, 7453 ms, 20.53 ms each
+  program ...0e42000: 218 dispatches, 3739 ms, 17.15 ms each
+  program ...1544500: 201 dispatches, 3169 ms, 15.77 ms each

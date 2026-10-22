@@ -6,9 +6,34 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2] / "docs" / "user" / "optimizations"
 LEAF_SECTIONS = ("## Cause", "## Options", "## Result", "## Why")
+EVIDENCE_STATUSES = ("testing", "applied", "rejected", "no-gain")
+EVIDENCE_SECTIONS = ("## Evidence", "### Original", "### Change", "### Reason", "### Improvement", "### Timings", "### Reports")
 STATUSES = ("planned", "researched", "testing", "applied", "rejected", "no-gain")
 NAME = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 LINK = re.compile(r"\]\(([^)#\s]+)\)")
+
+
+def check_evidence(folder: Path, text: str, relative: Path, errors: list[str]) -> None:
+    positions = []
+    for section in EVIDENCE_SECTIONS:
+        position = text.find(section + "\n")
+        if position < 0:
+            errors.append(f"{relative}/INDEX.md: evidence section '{section}' is missing")
+            return
+        positions.append(position)
+    if positions != sorted(positions):
+        errors.append(f"{relative}/INDEX.md: evidence sections are not in the required order")
+        return
+    timings = text[positions[5]:positions[6]]
+    if "|---" not in timings:
+        errors.append(f"{relative}/INDEX.md: '### Timings' needs a table")
+    reports = text[positions[6]:]
+    linked = [link for link in LINK.findall(reports) if not link.startswith("http")]
+    if not linked and "report not kept" not in reports:
+        errors.append(f"{relative}/INDEX.md: '### Reports' needs a link to a report file or 'report not kept'")
+    for link in linked:
+        if not (folder / link).is_file():
+            errors.append(f"{relative}/INDEX.md: report {link} does not exist")
 
 
 def check_folder(folder: Path, root: Path, errors: list[str]) -> None:
@@ -23,12 +48,17 @@ def check_folder(folder: Path, root: Path, errors: list[str]) -> None:
     if not text.startswith("# "):
         errors.append(f"{relative}/INDEX.md: the first line must be a '# ' title")
     children = sorted(path for path in folder.iterdir() if path.is_dir())
+    summary = re.search(r"^## Improvement summary\n(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    if summary is None:
+        errors.append(f"{relative}/INDEX.md: section '## Improvement summary' is missing")
+    elif "|---" not in summary.group(1):
+        errors.append(f"{relative}/INDEX.md: '## Improvement summary' needs a table with the start and the current values")
     links = {link for link in LINK.findall(text) if not link.startswith("http")}
     expected = {f"{child.name}/INDEX.md" for child in children}
     for link in sorted(expected - links):
         errors.append(f"{relative}/INDEX.md: link to direct child {link} is missing")
     for link in sorted(links):
-        if link.endswith(".md") and link not in expected and not link.startswith("../"):
+        if link.endswith(".md") and link not in expected and not link.startswith("../") and "/" in link:
             errors.append(f"{relative}/INDEX.md: link {link} is not a direct child INDEX.md")
     if folder != root:
         status = re.search(r"^Status: `([a-z-]+)`", text, re.MULTILINE)
@@ -37,6 +67,8 @@ def check_folder(folder: Path, root: Path, errors: list[str]) -> None:
         for section in LEAF_SECTIONS:
             if section not in text:
                 errors.append(f"{relative}/INDEX.md: section '{section}' is missing")
+        if status is not None and status.group(1) in EVIDENCE_STATUSES and not children:
+            check_evidence(folder, text, relative, errors)
     for child in children:
         check_folder(child, root, errors)
 

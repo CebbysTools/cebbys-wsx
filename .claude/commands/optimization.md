@@ -9,6 +9,8 @@ Follow the "Optimization records" rules in `CLAUDE.md`. Write in ASD-STE100 Simp
 2. Do the research. Find the cause in the code and in the bench logs. Write the measured numbers.
 3. Create `docs/user/optimizations/$ARGUMENTS/INDEX.md`, with the title, the status line (`researched`), `## Cause`, `## Options` (a table with pros and cons), `## Result` and `## Why`.
 4. If there is more than one option, make one subfolder for each option, each with its own INDEX.md.
-5. Add a link and a one-line summary to the INDEX.md of each parent folder, up to the root. Link only direct children.
-6. Run `python3 fork-tools/optimizations/check_index.py`. Correct all problems.
-7. Show the record to the user. Do not change code in this command.
+5. Add `## Improvement summary` to the new INDEX.md. Update the improvement summary table in each parent INDEX.md and the cumulative table in the root INDEX.md.
+6. Add a link and a one-line summary to the INDEX.md of each parent folder, up to the root. Link only direct children.
+7. Run `python3 fork-tools/optimizations/check_index.py`. Correct all problems.
+8. After you change code and measure, set the status and add `## Evidence` with `### Original`, `### Change`, `### Reason`, `### Improvement`, `### Timings` and `### Reports`. Copy the used report lines to `report-<bench label>.txt` in the record folder.
+9. Show the record to the user. Do not change code in this command.

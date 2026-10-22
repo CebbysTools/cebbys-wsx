@@ -2,6 +2,12 @@
 
 Status: `researched`
 
+## Improvement summary
+
+| Metric | Start | Now | Change |
+|---|---|---|---|
+| 0x115258a000 ms per run | 338.52 | not implemented | n/a |
+
 ## Cause
 
 When `op_sel_hi` marks all three operands as f16, `v_fma_mix*` equals `v_fma_f16`.

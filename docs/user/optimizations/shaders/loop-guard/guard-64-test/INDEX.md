@@ -2,6 +2,12 @@
 
 Status: `researched`
 
+## Improvement summary
+
+| Metric | Start | Now | Change |
+|---|---|---|---|
+| 0x115258a000 ms per run | 338.52 | 257.75 | test only, not a fix |
+
 ## Cause
 
 Shader 0x115258a000 (ambient occlusion) takes about 340 ms. A loop that runs too long would explain this.

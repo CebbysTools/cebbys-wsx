@@ -2,6 +2,12 @@
 
 Status: `testing`
 
+## Improvement summary
+
+| Optimization | Status | Metric | Start | Now | Change |
+|---|---|---|---|---|---|
+| [Skip read-backs](skip-readbacks/INDEX.md) | `testing` | Menu FPS (win256 → skipall) | 4.04 | 4.94 | +22% (diagnostic) |
+
 ## Cause
 
 The CPU reads GPU results back (DCC keys, HTILE, pending writes). Each read is a GPU round trip under one global mutex. In the menu there are about 250 syncs per 10 s, each 2-6 ms.
@@ -15,7 +21,7 @@ The CPU reads GPU results back (DCC keys, HTILE, pending writes). Each read is a
 
 ## Result
 
-The experiments together raised the menu to about 5.2 FPS (bench `contract2`, 5.15 FPS).
+The experiments together raised the menu from 4.04 to 4.94 FPS (bench `skipall`).
 
 ## Why
 

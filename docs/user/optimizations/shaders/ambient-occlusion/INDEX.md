@@ -2,6 +2,12 @@
 
 Status: `researched`
 
+## Improvement summary
+
+| Metric | Start | Now | Change |
+|---|---|---|---|
+| 0x115258a000 ms per run | 339.48 | 339.48 | cause found, fix in testing |
+
 ## Cause
 
 Program 0x115258a000 is a GTAO-style ambient occlusion pass at 2348x1320. It has an outer loop over slices and an inner loop over steps, with two texture samples per step. It takes about 340 ms per run. In one menu scene it used about 40% of all GPU time.

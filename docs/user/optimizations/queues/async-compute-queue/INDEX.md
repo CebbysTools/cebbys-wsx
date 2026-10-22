@@ -2,6 +2,12 @@
 
 Status: `researched`
 
+## Improvement summary
+
+| Metric | Start | Now | Change |
+|---|---|---|---|
+| Graphics wait behind 0x115258a000 | about 340 ms per run | not implemented | n/a |
+
 ## Cause
 
 Shader 0x115258a000 runs on a PS5 compute queue, but on the PC it uses the single Vulkan queue. Each run blocks graphics for about 340 ms.

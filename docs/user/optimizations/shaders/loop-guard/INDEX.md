@@ -2,6 +2,13 @@
 
 Status: `applied`
 
+## Improvement summary
+
+| Optimization | Status | Metric | Start | Now | Change |
+|---|---|---|---|---|---|
+| [Default loop guard](default-guard/INDEX.md) | `applied` | GPU resets in a match | yes (nvlddmkm 153) | none | fixed |
+| [Loop guard 64 test](guard-64-test/INDEX.md) | `researched` | 0x115258a000 ms per run | 338.52 | 257.75 | test only, not a fix |
+
 ## Cause
 
 Some shader loops ran without end on the PC and reset the GPU (Windows TDR, nvlddmkm 153).

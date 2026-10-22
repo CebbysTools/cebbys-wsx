@@ -1,6 +1,14 @@
 # FMA mix without FP64
 
-Status: `researched`
+Status: `testing`
+
+## Improvement summary
+
+| Optimization | Status | Metric | Start | Now | Change |
+|---|---|---|---|---|---|
+| [FP32 round-to-odd](f32-round-to-odd/INDEX.md) | `testing` | 0x115258a000 ms per run | 338.52 | not measured | pending |
+| [Keep FP64](keep-f64/INDEX.md) | `rejected` | 0x115258a000 ms per run | 339.48 | 338.52 | baseline |
+| [Native f16 when all operands are f16](native-f16-operands/INDEX.md) | `researched` | 0x115258a000 ms per run | 338.52 | not implemented | n/a |
 
 ## Cause
 
@@ -29,7 +37,7 @@ Measured on the ambient occlusion shader `0x115258a000` (offline replay with `ag
 
 ## Result
 
-Not implemented. Plan: FP32 round-to-odd for all cases, then measure `0x115258a000` again.
+FP32 round-to-odd is implemented and passes the tests. GPU time of `0x115258a000` is not measured yet.
 
 ## Why
 
