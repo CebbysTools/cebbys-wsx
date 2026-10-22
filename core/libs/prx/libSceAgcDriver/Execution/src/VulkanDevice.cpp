@@ -1326,9 +1326,10 @@ VulkanDevice::VulkanDevice(const PresentationWindow* window, bool compileOnly) :
         VkPhysicalDeviceFeatures2 features{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &fmaFeatures};
         state->InstanceFunction<PFN_vkGetPhysicalDeviceFeatures2>("vkGetPhysicalDeviceFeatures2")(selected, &features);
     }
-    const bool float16Fma = fmaFeatures.shaderFmaFloat16 == VK_TRUE;
+    const bool float16Fma = fmaFeatures.shaderFmaFloat16 == VK_TRUE && fmaFeatures.shaderFmaFloat32 == VK_TRUE;
     fmaFeatures = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_FMA_FEATURES_KHR};
     fmaFeatures.shaderFmaFloat16 = VK_TRUE;
+    fmaFeatures.shaderFmaFloat32 = VK_TRUE;
     if (float16Fma) {
         deviceExtensions.push_back(VK_KHR_SHADER_FMA_EXTENSION_NAME);
         state->capabilities.push_back(6030);
