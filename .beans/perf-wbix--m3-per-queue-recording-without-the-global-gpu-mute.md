@@ -27,3 +27,11 @@ Section 4.2: one recorder per guest queue/host thread, preparation outside locks
 - `APS5_TEXTURE_CACHE_MIB=4096`: eviction write-backs 0, first uploads 90/10 s, but vkAllocateMemory OOM (heap 0 11526/11242 MiB) at match load; NVIDIA GPU lost afterwards (reboot needed).
 - Partial `APS5_TRACE_DEVICE_MEMORY` (branch diag/device-memory-by-site): createHostPointerImport 2.3 GB and BufferPool::AllocateMemory 1.5 GB live at boot; memory type split added, not yet run.
 - Next: full-match device memory trace after reboot; cap the largest device-local consumer; reserve storage cache budget; measure.
+
+## Findings 2026-10-22 (menu, 120 s runs)
+- `perf/agc-host-import-window` (256 MiB windows): menu 2.0 -> 4.0 FPS; render targets read as buffers no longer CPU-copied.
+- Remaining hook syncs were `storeBackClearedHtile` CPU-reading 640 KiB HTILE over pending GPU writes (DepthSurface.cpp): skipping it (`APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ`, diag) cuts syncs 4.5 s -> 0.5 s per 10 s, FPS ~4.2 (frames now GPU-bound).
+- GPU time per menu frame ~180 ms; 5 compute programs ~95 ms. `0x1152fa6000` 240x135 groups (4K, 16x16), 0x16e0 bytes RDNA, 244k SPIR-V words, ~23 ms per dispatch, not address-based.
+- Ruled out for that program: buffer placement (written regions staged to VRAM: no change; read-only regions staged: no change), SPIR-V optimisation (SPIRV-Tools ON: optimiser far too slow for 26k shaders and the run hung; not measured), `APS5_FAST_FLOAT` (27 ms both, no-cache runs), loop guard 4096 (inconclusive).
+- Frostbite DRS strings exist (`DynamicResolutionScale*`) but command-line `-Render.ResolutionScale`/`-WorldRender.ResolutionScale` had no effect; passes stay 4K (PS5_4K preset forced by `ANYPS5_OUTPUT_RESOLUTION=2160p`).
+- Next: shader-level profile of 0x1152fa6000 (Nsight real-time shader profiler on the menu frame), and a way to render below 4K.
