@@ -1,0 +1,17 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench base-180: fps_mean=0.82, fps_min_window=0.6, fps_max_window=1.0, gpu_busy_ms_per_frame=452.38, gpu_idle_ms_per_frame=874.8, cache_misses=4, failure=, env=
+log bench-base-180.log: 15 [gputime] windows of 10 s
+  program ...2fa6000: 236 dispatches, 5581 ms, 23.65 ms each
+  program ...1ddc800: 84 dispatches, 2945 ms, 35.06 ms each
+  program ...1544500: 162 dispatches, 2617 ms, 16.15 ms each
+bench dma-drain: fps_mean=0.77, fps_min_window=0.6, fps_max_window=0.9, gpu_busy_ms_per_frame=409.97, gpu_idle_ms_per_frame=1048.33, cache_misses=0, failure=, env=APS5_TRACE_DMA_DRAIN=1
+log bench-dma-drain.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 173 dispatches, 3962 ms, 22.90 ms each
+  program ...28a6300: 2005 dispatches, 2489 ms, 1.24 ms each
+  program ...1ddc800: 53 dispatches, 1874 ms, 35.36 ms each
+bench gds-gpu: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=0, failure=read-write alias of shared guest memory 0x11aeff0000+0x100000: a resident run of direct memory extends outside the range, env=APS5_TRACE_DMA_DRAIN=1
+log bench-gds-gpu.log: 2 [gputime] windows of 10 s
+  program ...23e7000: 167 dispatches, 464 ms, 2.78 ms each
+  program ...28a6300: 182 dispatches, 360 ms, 1.98 ms each
+  program ...2fa6000: 25 dispatches, 250 ms, 10.00 ms each
+[sync] 1050 device drains by packet: DMA_DATA=1050 (913 waited without the GPU mutex); 112462 labels written on the GPU,

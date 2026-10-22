@@ -1,0 +1,17 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench win8: fps_mean=2.02, fps_min_window=1.4, fps_max_window=2.2, gpu_busy_ms_per_frame=242.48, gpu_idle_ms_per_frame=284.16, cache_misses=0, failure=, env=
+log bench-win8.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 314 dispatches, 7230 ms, 23.03 ms each
+  program ...258a000: 11 dispatches, 3755 ms, 341.36 ms each
+  program ...0e42000: 193 dispatches, 3324 ms, 17.22 ms each
+  program ...1544500: 116 dispatches, 2096 ms, 18.07 ms each
+  program ...0100100: 10146 dispatches, 1429 ms, 0.14 ms each
+  program ...0f13800: 193 dispatches, 750 ms, 3.89 ms each
+bench win64: fps_mean=3.48, fps_min_window=2.2, fps_max_window=3.8, gpu_busy_ms_per_frame=183.8, gpu_idle_ms_per_frame=125.8, cache_misses=0, failure=, env=APS5_HOST_IMPORT_WINDOW_MIB=64
+log bench-win64.log: 10 [gputime] windows of 10 s
+  program ...2fa6000: 446 dispatches, 10143 ms, 22.74 ms each
+  program ...258a000: 18 dispatches, 6112 ms, 339.56 ms each
+  program ...0e42000: 272 dispatches, 4701 ms, 17.28 ms each
+  program ...1544500: 183 dispatches, 3264 ms, 17.84 ms each
+  program ...0100100: 14426 dispatches, 1982 ms, 0.14 ms each
+  program ...0f13800: 272 dispatches, 743 ms, 2.73 ms each

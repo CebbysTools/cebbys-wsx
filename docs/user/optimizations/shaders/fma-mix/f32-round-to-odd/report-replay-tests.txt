@@ -1,0 +1,22 @@
+source: agc_shader_replay --spv on shader_115258a000.req (bench reqdump); tests on RTX 4070, driver 610.88
+before (perf/shader-native-f16-fma): 66695 SPIR-V words
+  before: function 119 main at 1191
+  before: function 15406 interpolate_f16_mode_0 at 13713
+  before: loop at 8316 merge 13061 instructions 4745 samples 4 calls {'interpolate_f16_mode_0': 24}
+  before: loop at 9202 merge 11815 instructions 2613 samples 4 calls {'interpolate_f16_mode_0': 24}
+  before: all calls {'interpolate_f16_mode_0': 38}
+after (perf/shader-fma-mix-fp32): 81945 SPIR-V words
+  after: function 119 main at 1807
+  after: function 15487 interpolate_f16_mode_0 at 17193
+  after: loop at 9992 merge 16541 instructions 6549 samples 4 calls {'interpolate_f16_mode_0': 24}
+  after: loop at 10878 merge 15295 instructions 4417 samples 4 calls {'interpolate_f16_mode_0': 24}
+  after: all calls {'interpolate_f16_mode_0': 38}
+  after:     136   0.8% OpFmaKHR
+tests (ANYPS5_REQUIRE_VULKAN=1, ANYPS5_NO_SHADER_CACHE=1; with VK_LAYER_KHRONOS_validation: 0 VUID- errors):
+  interpolation modes passed: 32 hardware rows and 2048 random rows against the reference in 32 float modes, 3 ops, integer and Float64 paths
+  16-bit interpolation tests passed
+  mix precision tests passed
+  v_fma_mix_f32 f16 denormal mode tests passed
+  f16 fma invalid operation NaN tests passed
+  fp16 overflow tests passed
+  fma rounding tests passed

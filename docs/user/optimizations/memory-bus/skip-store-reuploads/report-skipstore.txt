@@ -1,0 +1,16 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench win256: fps_mean=4.04, fps_min_window=2.2, fps_max_window=4.5, gpu_busy_ms_per_frame=189.24, gpu_idle_ms_per_frame=80.04, cache_misses=0, failure=, env=APS5_HOST_IMPORT_WINDOW_MIB=256
+log bench-win256.log: 11 [gputime] windows of 10 s
+  program ...258a000: 57 dispatches, 19418 ms, 340.67 ms each
+  program ...2fa6000: 533 dispatches, 11366 ms, 21.32 ms each
+  program ...0e42000: 308 dispatches, 5319 ms, 17.27 ms each
+bench devnext-skipstore-a: fps_mean=2.8, fps_min_window=2.8, fps_max_window=2.8, gpu_busy_ms_per_frame=166.78, gpu_idle_ms_per_frame=201.71, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_STORE_UPLOADS=1
+log bench-devnext-skipstore-a.log: 45 [gputime] windows of 10 s
+  program ...2fa6000: 2280 dispatches, 52491 ms, 23.02 ms each
+  program ...0e42000: 1239 dispatches, 21535 ms, 17.38 ms each
+  program ...1544500: 1038 dispatches, 19069 ms, 18.37 ms each
+bench devnext-skipstore-b: fps_mean=1.54, fps_min_window=0.1, fps_max_window=2.7, gpu_busy_ms_per_frame=289.04, gpu_idle_ms_per_frame=2242.18, cache_misses=314, failure=, env=APS5_EXPERIMENT_SKIP_STORE_UPLOADS=1
+log bench-devnext-skipstore-b.log: 35 [gputime] windows of 10 s
+  program ...2fa6000: 1043 dispatches, 24254 ms, 23.25 ms each
+  program ...0e42000: 641 dispatches, 11080 ms, 17.29 ms each
+  program ...1544500: 466 dispatches, 8610 ms, 18.48 ms each

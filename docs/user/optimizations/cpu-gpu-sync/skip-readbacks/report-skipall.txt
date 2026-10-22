@@ -1,0 +1,31 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench win256: fps_mean=4.04, fps_min_window=2.2, fps_max_window=4.5, gpu_busy_ms_per_frame=189.24, gpu_idle_ms_per_frame=80.04, cache_misses=0, failure=, env=APS5_HOST_IMPORT_WINDOW_MIB=256
+log bench-win256.log: 11 [gputime] windows of 10 s
+  program ...258a000: 57 dispatches, 19418 ms, 340.67 ms each
+  program ...2fa6000: 533 dispatches, 11366 ms, 21.32 ms each
+  program ...0e42000: 308 dispatches, 5319 ms, 17.27 ms each
+bench htileskip: fps_mean=4.24, fps_min_window=2.9, fps_max_window=4.6, gpu_busy_ms_per_frame=178.88, gpu_idle_ms_per_frame=72.48, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1
+log bench-htileskip.log: 10 [gputime] windows of 10 s
+  program ...258a000: 37 dispatches, 12537 ms, 338.84 ms each
+  program ...2fa6000: 472 dispatches, 9869 ms, 20.91 ms each
+  program ...0e42000: 254 dispatches, 4353 ms, 17.14 ms each
+bench keyskip: fps_mean=4.2, fps_min_window=2.8, fps_max_window=4.6, gpu_busy_ms_per_frame=175.48, gpu_idle_ms_per_frame=73.06, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1
+log bench-keyskip.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 688 dispatches, 15672 ms, 22.78 ms each
+  program ...0e42000: 435 dispatches, 7533 ms, 17.32 ms each
+  program ...258a000: 20 dispatches, 6797 ms, 339.85 ms each
+bench flushskip: fps_mean=4.4, fps_min_window=2.8, fps_max_window=4.8, gpu_busy_ms_per_frame=181.34, gpu_idle_ms_per_frame=62.3, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1
+log bench-flushskip.log: 11 [gputime] windows of 10 s
+  program ...258a000: 54 dispatches, 18345 ms, 339.72 ms each
+  program ...2fa6000: 568 dispatches, 12126 ms, 21.35 ms each
+  program ...0e42000: 322 dispatches, 5531 ms, 17.18 ms each
+bench nopresync: fps_mean=4.57, fps_min_window=1.8, fps_max_window=5.2, gpu_busy_ms_per_frame=213.35, gpu_idle_ms_per_frame=48.13, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1
+log bench-nopresync.log: 11 [gputime] windows of 10 s
+  program ...258a000: 64 dispatches, 21770 ms, 340.16 ms each
+  program ...2fa6000: 590 dispatches, 12614 ms, 21.38 ms each
+  program ...0e42000: 342 dispatches, 5910 ms, 17.28 ms each
+bench skipall: fps_mean=4.94, fps_min_window=4.0, fps_max_window=5.2, gpu_busy_ms_per_frame=171.78, gpu_idle_ms_per_frame=35.08, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_SKIP_SHADER=258a000
+log bench-skipall.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 640 dispatches, 13590 ms, 21.23 ms each
+  program ...0e42000: 428 dispatches, 7395 ms, 17.28 ms each
+  program ...1544500: 401 dispatches, 6503 ms, 16.22 ms each

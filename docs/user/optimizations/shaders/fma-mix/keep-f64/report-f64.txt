@@ -1,0 +1,10 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench stage1g: fps_mean=3.56, fps_min_window=2.3, fps_max_window=3.9, gpu_busy_ms_per_frame=247.34, gpu_idle_ms_per_frame=50.56, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_EXPERIMENT_STAGE_READS_MIB=1024 APS5_WRITTEN_SHADOW_MAX_KIB=1048576
+log bench-stage1g.log: 11 [gputime] windows of 10 s
+  program ...258a000: 54 dispatches, 18332 ms, 339.48 ms each
+bench f16fma-5: fps_mean=1.5, fps_min_window=1.1, fps_max_window=1.6, gpu_busy_ms_per_frame=542.54, gpu_idle_ms_per_frame=342.46, cache_misses=20, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1
+log bench-f16fma-5.log: 16 [gputime] windows of 10 s
+  program ...258a000: 195 dispatches, 66011 ms, 338.52 ms each
+bench guard64b: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=108, failure=, env=APS5_LOOP_GUARD=64 APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1
+log bench-guard64b.log: 8 [gputime] windows of 10 s
+  program ...258a000: 4 dispatches, 1031 ms, 257.75 ms each

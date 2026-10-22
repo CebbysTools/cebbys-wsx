@@ -1,0 +1,16 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench skipall: fps_mean=4.94, fps_min_window=4.0, fps_max_window=5.2, gpu_busy_ms_per_frame=171.78, gpu_idle_ms_per_frame=35.08, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_SKIP_SHADER=258a000
+log bench-skipall.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 640 dispatches, 13590 ms, 21.23 ms each
+  program ...0e42000: 428 dispatches, 7395 ms, 17.28 ms each
+  program ...258a000: not in this log
+bench contract: fps_mean=, fps_min_window=, fps_max_window=, gpu_busy_ms_per_frame=, gpu_idle_ms_per_frame=, cache_misses=94, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_EXPERIMENT_CONTRACT=1
+log bench-contract.log: 4 [gputime] windows of 10 s
+  program ...258a000: 1 dispatches, 634 ms, 634.00 ms each
+  program ...2fa6000: 74 dispatches, 857 ms, 11.58 ms each
+  program ...0e42000: 20 dispatches, 326 ms, 16.30 ms each
+bench contract2: fps_mean=5.15, fps_min_window=5.1, fps_max_window=5.2, gpu_busy_ms_per_frame=171.35, gpu_idle_ms_per_frame=23.6, cache_misses=7, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_EXPERIMENT_CONTRACT=1
+log bench-contract2.log: 25 [gputime] windows of 10 s
+  program ...258a000: 4 dispatches, 1661 ms, 415.25 ms each
+  program ...2fa6000: 1908 dispatches, 42779 ms, 22.42 ms each
+  program ...0e42000: 995 dispatches, 16688 ms, 16.77 ms each

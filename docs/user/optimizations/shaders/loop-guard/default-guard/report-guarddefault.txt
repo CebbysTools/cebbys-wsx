@@ -1,0 +1,16 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench baseline-nhl27-a: fps_mean=1.02, fps_min_window=0.4, fps_max_window=1.7, gpu_busy_ms_per_frame=415.18, gpu_idle_ms_per_frame=2798.78, cache_misses=287, failure=, env=
+log bench-baseline-nhl27-a.log: 21 [gputime] windows of 10 s
+  program ...2fa6000: 268 dispatches, 6489 ms, 24.21 ms each
+  program ...1ddc800: 97 dispatches, 3439 ms, 35.45 ms each
+  program ...0e42000: 170 dispatches, 2983 ms, 17.55 ms each
+bench guarddefault-a: fps_mean=1.11, fps_min_window=0.0, fps_max_window=2.3, gpu_busy_ms_per_frame=367.95, gpu_idle_ms_per_frame=11112.4, cache_misses=488, failure=, env=
+log bench-guarddefault-a.log: 42 [gputime] windows of 10 s
+  program ...2fa6000: 582 dispatches, 13810 ms, 23.73 ms each
+  program ...0e42000: 330 dispatches, 6038 ms, 18.30 ms each
+  program ...1544500: 300 dispatches, 5753 ms, 19.18 ms each
+bench guarddefault-b: fps_mean=2.12, fps_min_window=2.1, fps_max_window=2.2, gpu_busy_ms_per_frame=213.48, gpu_idle_ms_per_frame=265.03, cache_misses=0, failure=, env=
+log bench-guarddefault-b.log: 97 [gputime] windows of 10 s
+  program ...2fa6000: 3873 dispatches, 88192 ms, 22.77 ms each
+  program ...1544500: 1938 dispatches, 35913 ms, 18.53 ms each
+  program ...0e42000: 1945 dispatches, 33810 ms, 17.38 ms each

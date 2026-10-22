@@ -34,3 +34,10 @@ Stage A already runs before the lock (`prepare:` phases), so the plan extends it
 ## Expected effect
 
 If stage B leaves the lock, the serialized part per dispatch falls from ~0.94 ms to the record step (estimate 0.1-0.2 ms, to be measured); GPU idle time should fall accordingly.
+
+## Async compute on its own Vulkan queue (measured 2026-10-22)
+
+- Program `0x115258a000` (GTAO-style ambient occlusion, 2348x1320, two samples per inner-loop step) takes ~340 ms per run on the RTX 4070. In the later menu scene it ran 195 times in 160 s, ~40% of all GPU time.
+- All PS5 queues are recorded by one global `Recorder` (`activeRecorder`, `Graphics/src/Recorder.cpp`) and submitted to one `VkQueue`, so graphics work waits behind it.
+- `APS5_LOOP_GUARD=64` cut it only to 258 ms and never tripped, so the loop counts are legitimate; the cost is sample latency. Open: why it is ~100x slower than on the console (needs its SPIR-V from `APS5_DUMP_SHADERS` + `agc_shader_replay --spv`).
+- A second recorder for compute-only PS5 queues, submitted to a second `VkQueue` of the same family (the device already asks for `queueCount = 2` when available), needs cross-recorder hazard tracking for guest ranges and label/`WAIT_REG_MEM` ordering as timeline semaphores (M4).

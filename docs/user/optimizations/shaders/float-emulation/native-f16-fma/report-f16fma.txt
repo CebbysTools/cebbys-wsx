@@ -1,0 +1,31 @@
+source: results.csv and /mnt/c/Games/NHL 27/logs
+bench stage1g: fps_mean=3.56, fps_min_window=2.3, fps_max_window=3.9, gpu_busy_ms_per_frame=247.34, gpu_idle_ms_per_frame=50.56, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_PIPELINE_DISPATCH=1 APS5_EXPERIMENT_SKIP_KEY_SYNC=1 APS5_EXPERIMENT_SKIP_FLUSH_SYNC=1 APS5_NO_PRESYNC=1 APS5_EXPERIMENT_STAGE_READS_MIB=1024 APS5_WRITTEN_SHADOW_MAX_KIB=1048576
+log bench-stage1g.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 474 dispatches, 9804 ms, 20.68 ms each
+  program ...0e42000: 272 dispatches, 4676 ms, 17.19 ms each
+  program ...1544500: 255 dispatches, 4264 ms, 16.72 ms each
+  program ...23e7000: 125 dispatches, 504 ms, 4.03 ms each
+bench win256: fps_mean=4.04, fps_min_window=2.2, fps_max_window=4.5, gpu_busy_ms_per_frame=189.24, gpu_idle_ms_per_frame=80.04, cache_misses=0, failure=, env=APS5_HOST_IMPORT_WINDOW_MIB=256
+log bench-win256.log: 11 [gputime] windows of 10 s
+  program ...2fa6000: 533 dispatches, 11366 ms, 21.32 ms each
+  program ...0e42000: 308 dispatches, 5319 ms, 17.27 ms each
+  program ...1544500: 289 dispatches, 4814 ms, 16.66 ms each
+  program ...23e7000: 102 dispatches, 331 ms, 3.25 ms each
+bench stagereads: fps_mean=3.36, fps_min_window=2.9, fps_max_window=3.5, gpu_busy_ms_per_frame=229.82, gpu_idle_ms_per_frame=71.16, cache_misses=0, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1 APS5_EXPERIMENT_STAGE_READS_MIB=64
+log bench-stagereads.log: 10 [gputime] windows of 10 s
+  program ...2fa6000: 363 dispatches, 7453 ms, 20.53 ms each
+  program ...0e42000: 218 dispatches, 3739 ms, 17.15 ms each
+  program ...1544500: 201 dispatches, 3169 ms, 15.77 ms each
+  program ...23e7000: 113 dispatches, 500 ms, 4.42 ms each
+bench f16fma-4: fps_mean=1.2, fps_min_window=1.2, fps_max_window=1.2, gpu_busy_ms_per_frame=606.2, gpu_idle_ms_per_frame=1652.9, cache_misses=153, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1
+log bench-f16fma-4.log: 9 [gputime] windows of 10 s
+  program ...2fa6000: 67 dispatches, 638 ms, 9.52 ms each
+  program ...0e42000: 36 dispatches, 644 ms, 17.89 ms each
+  program ...1544500: 23 dispatches, 409 ms, 17.78 ms each
+  program ...23e7000: 126 dispatches, 490 ms, 3.89 ms each
+bench f16fma-5: fps_mean=1.5, fps_min_window=1.1, fps_max_window=1.6, gpu_busy_ms_per_frame=542.54, gpu_idle_ms_per_frame=342.46, cache_misses=20, failure=, env=APS5_EXPERIMENT_SKIP_PENDING_HTILE_READ=1
+log bench-f16fma-5.log: 16 [gputime] windows of 10 s
+  program ...2fa6000: 70 dispatches, 683 ms, 9.76 ms each
+  program ...0e42000: 213 dispatches, 3165 ms, 14.86 ms each
+  program ...1544500: 190 dispatches, 2635 ms, 13.87 ms each
+  program ...23e7000: 124 dispatches, 402 ms, 3.24 ms each
