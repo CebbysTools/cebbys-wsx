@@ -106,7 +106,11 @@ struct F16x2Math {
     bool add = false;
     bool mul = false;
     bool fma = false;
+    bool fusedFma = false;
 };
+
+constexpr std::uint32_t FmaKhrOpcode = 4427u;
+constexpr std::uint32_t FmaKhrCapability = 6030u;
 
 F16x2Math FindF16x2Math(std::span<const std::uint32_t> spirv) {
     std::optional<std::uint32_t> half;
@@ -123,6 +127,10 @@ F16x2Math FindF16x2Math(std::span<const std::uint32_t> spirv) {
         if (opcode == spv::OpTypeVector) {
             Require(words >= 4u, "packed f16 native: malformed vector type");
             if (half && spirv[offset + 2u] == *half && spirv[offset + 3u] == 2u) pair = spirv[offset + 1u];
+        }
+        if (opcode == FmaKhrOpcode) {
+            Require(words == 6u, "packed f16 native: malformed OpFmaKHR");
+            math.fusedFma = math.fusedFma || (pair && spirv[offset + 1u] == *pair);
         }
         if (opcode == spv::OpFAdd || opcode == spv::OpFMul || opcode == spv::OpExtInst) {
             Require(words >= 5u, "packed f16 native: malformed arithmetic instruction");
@@ -153,6 +161,11 @@ int main() {
         }
         std::vector<std::uint32_t> withoutFloat16;
         std::ranges::copy_if(target.supportedCapabilities, std::back_inserter(withoutFloat16), [](std::uint32_t capability) { return capability != spv::CapabilityFloat16; });
+        const bool fusedFma = std::ranges::find(target.supportedCapabilities, FmaKhrCapability) != target.supportedCapabilities.end();
+        std::vector<std::uint32_t> withoutFusedFma;
+        std::ranges::copy_if(target.supportedCapabilities, std::back_inserter(withoutFusedFma), [](std::uint32_t capability) { return capability != FmaKhrCapability; });
+        auto unfusedTarget = target;
+        unfusedTarget.supportedCapabilities = withoutFusedFma;
         auto emulatedTarget = target;
         emulatedTarget.supportedCapabilities = withoutFloat16;
 
@@ -190,7 +203,9 @@ int main() {
             const F16x2Math emulatedMath = FindF16x2Math(emulated.spirv.Words());
             Require(nativeMath.add && nativeMath.mul, std::string("packed f16 native: ") + mode.name + " does not use f16vec2 add and mul");
             Require(!nativeMath.fma, std::string("packed f16 native: ") + mode.name + " uses an f16vec2 Fma, which Vulkan does not require to be fused");
-            Require(!emulatedMath.add && !emulatedMath.mul && !emulatedMath.fma, std::string("packed f16 native: ") + mode.name + " uses f16vec2 math without Float16");
+            Require(nativeMath.fusedFma == fusedFma, std::string("packed f16 native: ") + mode.name + (nativeMath.fusedFma ? " uses" : " does not use") + " OpFmaKHR on f16vec2");
+            Require(!FindF16x2Math(compile(unfusedTarget, mode).spirv.Words()).fusedFma, std::string("packed f16 native: ") + mode.name + " uses OpFmaKHR without the FMAKHR capability");
+            Require(!emulatedMath.add && !emulatedMath.mul && !emulatedMath.fma && !emulatedMath.fusedFma, std::string("packed f16 native: ") + mode.name + " uses f16vec2 math without Float16");
             for (std::uint32_t batch = 0; batch < Batches; ++batch) {
                 for (auto& word : Input) word = Half() | (Half() << 16u);
                 const auto nativeOutput = run(native);
