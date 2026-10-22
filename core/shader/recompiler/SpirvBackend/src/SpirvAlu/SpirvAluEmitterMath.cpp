@@ -15,6 +15,9 @@
 namespace ShaderRecompiler {
 namespace {
 
+constexpr std::uint32_t FmaKhrCapability = 6030u;
+constexpr std::uint32_t FmaKhrOpcode = 4427u;
+
 struct Pair {
     std::uint32_t low = 0;
     std::uint32_t high = 0;
@@ -1525,6 +1528,16 @@ std::uint32_t EmitFPMul16x2(SpirvEmitterState& state, std::uint32_t arg0, std::u
     const auto f16x2 = TypeF16x2(state);
     const auto product = Binary(state, spv::OpFMul, f16x2, Unary(state, spv::OpBitcast, f16x2, arg0), Unary(state, spv::OpBitcast, f16x2, arg1));
     return Unary(state, spv::OpBitcast, TypeU32(state), Exact(state, product));
+}
+
+std::uint32_t EmitFPFma16x2(SpirvEmitterState& state, std::uint32_t arg0, std::uint32_t arg1, std::uint32_t arg2) {
+    if (std::find(state.supportedCapabilities.begin(), state.supportedCapabilities.end(), FmaKhrCapability) == state.supportedCapabilities.end()) FailEmit("packed f16 fma needs the FMAKHR capability");
+    const auto f16x2 = TypeF16x2(state);
+    state.module.EmitCapability(FmaKhrCapability);
+    state.module.EmitExtension("SPV_KHR_fma");
+    const auto result = state.module.AllocateId();
+    state.module.AddFunction(FmaKhrOpcode, f16x2, result, Unary(state, spv::OpBitcast, f16x2, arg0), Unary(state, spv::OpBitcast, f16x2, arg1), Unary(state, spv::OpBitcast, f16x2, arg2));
+    return Unary(state, spv::OpBitcast, TypeU32(state), result);
 }
 
 std::uint32_t EmitF32ToF16BitsRte(SpirvEmitterState& state, std::uint32_t value) {
